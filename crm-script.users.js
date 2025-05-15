@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         crm
 // @namespace    https://projetodeep.github.io/
-// @version      1.0
+// @version      1.0.1
 // @description  Adiciona etiquetas e anotações ao WhatsApp Web
 // @author       Você
 // @match        https://web.whatsapp.com/*
 // @grant        none
-// @updateURL    https://projetodeep.github.io/crm/crm-script.js
-// @downloadURL  https://projetodeep.github.io/crm/crm-script.js
+// @updateURL    https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/crm-script.users.js
+// @downloadURL  https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/crm-script.users.js
 // ==/UserScript==
 
 let currentContact = null;
@@ -19,7 +19,29 @@ function addStickyNote(contact) {
   const note = document.createElement("div");
   note.id = "wa-helper-note";
   note.contentEditable = true;
-  note.innerText = localStorage.getItem(`wa-note-${contact}`) || "";
+  const savedNote = localStorage.getItem(`wa-note-${contact}`);
+const placeholderText = "Sua anotação aqui...";
+note.innerText = savedNote || placeholderText;
+note.style.opacity = savedNote ? "1" : "0.5";
+
+// Remove o placeholder ao focar
+note.addEventListener("focus", () => {
+  if (note.innerText === placeholderText) {
+    note.innerText = "";
+    note.style.opacity = "1";
+  }
+});
+
+// Restaura o placeholder se vazio ao sair do foco
+note.addEventListener("blur", () => {
+  const content = note.innerText.trim();
+  if (!content) {
+    note.innerText = placeholderText;
+    note.style.opacity = "0.5";
+  }
+  localStorage.setItem(`wa-note-${contact}`, content);
+});
+
   note.style.cssText = `
     position: fixed;
     bottom: 10px;
