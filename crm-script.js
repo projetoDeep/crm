@@ -1,4 +1,15 @@
-const VERSION = "1.0.0";
+// ==UserScript==
+// @name         crm
+// @namespace    https://projetodeep.github.io/
+// @version      1.0
+// @description  Adiciona etiquetas e anotações ao WhatsApp Web
+// @author       Você
+// @match        https://web.whatsapp.com/*
+// @grant        none
+// @updateURL    https://projetodeep.github.io/crm/crm-script.js
+// @downloadURL  https://projetodeep.github.io/crm/crm-script.js
+// ==/UserScript==
+
 let currentContact = null;
 
 function addStickyNote(contact) {
@@ -289,3 +300,4 @@ window.addEventListener("load", () => {
     }
   }, 5000);
 });
+
