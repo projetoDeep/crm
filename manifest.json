@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "WhatsApp Web Helper",
+  "version": "1.0",
+  "description": "Extensão para produtividade no WhatsApp Web",
+  "permissions": ["storage", "alarms", "scripting", "tabs"],
+  "host_permissions": [
+    "https://web.whatsapp.com/*"
+  ],
+  "action": {
+    "default_title": "WA Helper",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
