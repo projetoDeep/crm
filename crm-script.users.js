@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         crm
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.0.4
+// @version      1.0.5
 // @description  Adiciona etiquetas e anotações ao WhatsApp Web
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -52,7 +52,6 @@ note.addEventListener("blur", () => {
     max-width: 200px;
     border: 1px solid #ccc;
     font-size: 14px;
-    min-height: 40px;
   `;
   document.body.appendChild(note);
 
