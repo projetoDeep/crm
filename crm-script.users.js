@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         crm
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.0.8
+// @version      1.0.10
 // @description  Adiciona etiquetas e anotações ao WhatsApp Web
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -42,18 +42,21 @@ note.addEventListener("blur", () => {
   localStorage.setItem(`wa-note-${contact}`, content);
 });
 
-  note.style.cssText = `
-    position: fixed;
-    bottom: 65px;
-    right: 60px;
-    background: yellow;
-    padding: 10px;
-    z-index: 9999;
-    max-width: 200px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-    min-height: 40px;
-  `;
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+note.style.cssText = `
+  position: fixed;
+  bottom: 65px;
+  right: 60px;
+  background: ${isDark ? '#333' : 'yellow'};
+  color: ${isDark ? '#fff' : '#000'};
+  padding: 10px;
+  z-index: 9999;
+  max-width: 200px;
+  min-height: 40px;
+  border: 1px solid ${isDark ? '#666' : '#ccc'};
+  font-size: 14px;
+  overflow: auto;
+`;
   document.body.appendChild(note);
 
   note.addEventListener("input", () => {
