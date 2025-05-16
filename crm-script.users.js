@@ -6,8 +6,8 @@
 // @author       Você
 // @match        https://web.whatsapp.com/*
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/ProjetoDeep/crm/main/crm-script.js
-// @downloadURL  https://raw.githubusercontent.com/ProjetoDeep/crm/main/crm-script.js
+// @updateURL    https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/crm-script.users.js
+// @downloadURL  https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/crm-script.users.js
 // ==/UserScript==
 
 let currentContact = null;
