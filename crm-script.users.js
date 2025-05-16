@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.25
+// @version      1.1.27
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -105,15 +105,39 @@ followBtn.style.cssText = `
 `;
 
 followBtn.onclick = () => {
-    const delayMinutes = prompt(`Defina o tempo do alarme para o contato "${contact}": (ex: 10m, 2h, 1d utilize apenas numeros inteiros)`);
-    const minutes = parseInt(delayMinutes);
-    if (!isNaN(minutes) && minutes > 0) {
-        const triggerTime = Date.now() + minutes * 60 * 1000;
-        localStorage.setItem(`followup-${contact}`, triggerTime);
-        alert(`Alerta de follow-up ativado para ${minutes} minutos.`);
+    const delayInput = prompt(`Defina o tempo do alarme para o contato "${contact}": (ex: 10m, 2h, 1d — utilize apenas números inteiros)`);
+
+    function parseTimeToMinutes(str) {
+        if (!str) return null;
+        const regex = /^(\d+)([dhm])?$/i;
+        const match = str.trim().toLowerCase().match(regex);
+        if (!match) return null;
+
+        const value = parseInt(match[1], 10);
+        const unit = match[2] || 'm'; // padrão minutos
+
+        switch (unit) {
+            case 'd': return value * 60 * 24;
+            case 'h': return value * 60;
+            case 'm': return value;
+            default: return null;
+        }
     }
+
+    const minutes = parseTimeToMinutes(delayInput);
+
+    if (minutes === null || minutes <= 0) {
+        alert("Formato inválido! Use: 10m, 2h, 1d (números inteiros maiores que zero).");
+        return;
+    }
+
+    const triggerTime = Date.now() + minutes * 60 * 1000;
+    localStorage.setItem(`followup-${contact}`, triggerTime);
+    alert(`⏰ Alerta de follow-up ativado para ${minutes} minutos.`);
 };
-    note.appendChild(followBtn);
+
+// Isso aqui NÃO da pra remover, nao sei o pq mas n da
+note.appendChild(followBtn);
 }
 
 
