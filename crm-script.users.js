@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.19
+// @version      1.1.20
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -381,18 +381,49 @@ document.addEventListener("mouseup", handleNoteDrop);
 // Estilos adicionais
 const style = document.createElement("style");
 style.textContent = `
+    /* Nota adesiva */
     #wa-helper-note {
         font-family: Arial, sans-serif;
         font-size: 14px;
         transition: box-shadow 0.2s;
+        color: #333 !important;
+        background: #fff3cd !important;
     }
 
-    #wa-helper-note:active {
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    #wa-helper-note div[contenteditable] {
+        color: #333 !important;
     }
 
-    #wa-helper-note div[contenteditable]:focus {
-        background: #fff;
+    /* Ajustes para tema escuro */
+    [data-dark-mode="1"] #wa-helper-note {
+        border: 1px solid #555 !important;
+        background: #2d2d2d !important;
+        color: #eee !important;
+    }
+
+    [data-dark-mode="1"] #wa-helper-note div[contenteditable] {
+        color: #eee !important;
+    }
+
+    /* Etiquetas de contato */
+    .my-contact-label {
+        color: #333 !important;
+        background: #f0f0f0 !important;
+    }
+
+    [data-dark-mode="1"] .my-contact-label {
+        color: #eee !important;
+        background: #3a3a3a !important;
+    }
+
+    /* Etiquetas de mensagem */
+    .my-message-label {
+        background: #9B111E !important;
+        color: white !important;
+    }
+
+    .my-message-label button {
+        color: white !important;
     }
 `;
 document.head.appendChild(style);
