@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.27
+// @version      1.1.30
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -637,6 +637,19 @@ setInterval(() => {
   );
   menu.appendChild(btnClearExpiredAlarms);
 
+  // NOVO: Botão apagar todos os alarmes
+  const btnClearAllAlarms = createButton(
+    "🗑️ Apagar todos os alarmes",
+    () => {
+      if (confirm("Tem certeza que deseja apagar todos os alarmes ativos?")) {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
+        keys.forEach(key => localStorage.removeItem(key));
+        alert("Todos os alarmes foram apagados.");
+      }
+    }
+  );
+  menu.appendChild(btnClearAllAlarms);
+
   container.appendChild(menu);
   document.body.appendChild(container);
 
@@ -687,6 +700,7 @@ setInterval(() => {
     container.style.position = "fixed";
   });
 })();
+
 
 
 document.head.appendChild(style);
