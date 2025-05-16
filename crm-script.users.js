@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.32
+// @version      1.1.34
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -595,6 +595,19 @@ setInterval(() => {
         }
     });
 }, 30 * 1000); // Verifica a cada 30 segundos
+
+document.addEventListener("click", (e) => {
+    const note = document.getElementById("wa-helper-note");
+    if (!note) return;
+
+    if (!note.contains(e.target)) {
+        // Clique fora da nota: deixa ela mais transparente
+        note.style.opacity = "0.5";
+    } else {
+        // Clique dentro da nota: volta ao normal
+        note.style.opacity = "1";
+    }
+});
 
 
 // --- Engrenagem flutuante e menu arrastável // ---
