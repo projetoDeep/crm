@@ -67,7 +67,15 @@ function addStickyNote(contact) {
         cursor: text;
         min-height: 80px;
     `;
-    content.textContent = localStorage.getItem(`wa-note-${contact}`) || "Clique para editar...";
+    const savedText = localStorage.getItem(`wa-note-${contact}`);
+content.textContent = savedText || "Clique para editar...";
+
+// Apagar o texto placeholder ao focar, se ainda não editado
+content.addEventListener("focus", () => {
+    if (content.textContent === "Clique para editar...") {
+        content.textContent = "";
+    }
+});
 
     // Eventos de arrasto
     dragHandle.addEventListener('mousedown', startNoteDrag);
@@ -382,48 +390,62 @@ document.addEventListener("mouseup", handleNoteDrop);
 const style = document.createElement("style");
 style.textContent = `
     /* Nota adesiva */
-    #wa-helper-note {
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-        transition: box-shadow 0.2s;
-        color: #333 !important;
-        background: #fff3cd !important;
-    }
+#wa-helper-note {
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: 14px;
+    transition: box-shadow 0.3s, transform 0.2s;
+    color: #333 !important;
+    background: #fff9d6 !important;
+    border-radius: 10px !important;
+    border: 1px solid #ffe08a !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+}
 
-    #wa-helper-note div[contenteditable] {
-        color: #333 !important;
-    }
+#wa-helper-note div[contenteditable] {
+    color: #333 !important;
+}
 
-    /* Ajustes para tema escuro */
-    [data-dark-mode="1"] #wa-helper-note {
-        border: 1px solid #555 !important;
-        background: #2d2d2d !important;
-        color: #eee !important;
-    }
+[data-dark-mode="1"] #wa-helper-note {
+    border: 1px solid #444 !important;
+    background: #2c2c2c !important;
+    color: #eee !important;
+}
 
-    [data-dark-mode="1"] #wa-helper-note div[contenteditable] {
-        color: #eee !important;
-    }
+[data-dark-mode="1"] #wa-helper-note div[contenteditable] {
+    color: #eee !important;
+}
 
     /* Etiquetas de contato */
-    .my-contact-label {
-        color: #333 !important;
-        background: #f0f0f0 !important;
-    }
+.my-contact-label {
+    color: #222 !important;
+    background: #e8e8e8 !important;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
 
-    [data-dark-mode="1"] .my-contact-label {
-        color: #eee !important;
-        background: #3a3a3a !important;
-    }
+[data-dark-mode="1"] .my-contact-label {
+    color: #f0f0f0 !important;
+    background: #3a3a3a !important;
+    border: 1px solid #666;
+}
 
     /* Etiquetas de mensagem */
-    .my-message-label {
-        background: #9B111E !important;
-        color: white !important;
-    }
+.my-message-label {
+    background: #9B111E !important;
+    color: white !important;
+    border-radius: 18px;
+    padding: 2px 10px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
 
-    .my-message-label button {
-        color: white !important;
-    }
+.my-message-label button {
+    color: white !important;
+    margin-left: 6px;
+    font-size: 13px;
+}
 `;
 document.head.appendChild(style);
