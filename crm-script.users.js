@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.30
+// @version      1.1.32
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -200,13 +200,78 @@ function createLabelButton() {
             color: white;
             border: none;
             cursor: pointer;
+            position: absolute;
+            top: 10px;  /* posição inicial, ajusta se quiser */
+            left: 10px; /* posição inicial, ajusta se quiser */
+            z-index: 9999;
+
         `;
+
+        let isDragging = false;
+        let preventClick = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        let startX = 0;
+        let startY = 0;
+
+        button.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+
+            const rect = button.getBoundingClientRect();
+            offsetX = event.clientX - rect.left;
+            offsetY = event.clientY - rect.top;
+
+            startX = event.clientX;
+            startY = event.clientY;
+            isDragging = false;
+            preventClick = false;
+
+            function onMouseMove(e) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                if (!isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+                    isDragging = true;
+                    preventClick = true;
+                }
+
+                if (isDragging) {
+                    button.style.left = (e.clientX - offsetX) + 'px';
+                    button.style.top = (e.clientY - offsetY) + 'px';
+
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+            }
+
+            function onMouseUp(e) {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+
+                if (!preventClick) {
+                    button.click();
+                }
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        // Bloquear clique depois do arrasto
+        button.addEventListener('click', (e) => {
+            if (preventClick) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                preventClick = false;
+            }
+        });
 
         header.appendChild(button);
     }
 
     return button;
 }
+
 
 function renderLabel(contact) {
     const header = document.querySelector("header");
@@ -500,15 +565,37 @@ style.textContent = `
 setInterval(() => {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
     const now = Date.now();
+
     keys.forEach(key => {
         const trigger = parseInt(localStorage.getItem(key));
         if (trigger && now >= trigger) {
             const contact = key.replace("followup-", "");
-            alert(`⏰ Alerta de Alarme: Confira o contato "${contact}"`);
+
+            // Função simples para abrir chat
+            function openChatByName(name) {
+                // Tenta encontrar contato pelo título do span na lista lateral
+                const contacts = Array.from(document.querySelectorAll("div[role='row'] span[title]"));
+                const contactSpan = contacts.find(span => span.textContent.trim() === name);
+                if (contactSpan) {
+                    // O elemento pai do span é o que deve ser clicado
+                    const contactRow = contactSpan.closest("div[role='row']");
+                    if (contactRow) {
+                        contactRow.click();
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            const opened = openChatByName(contact);
+
+            alert(`⏰ Alerta de Alarme: Confira o contato "${contact}"${opened ? "" : " (não foi possível abrir o chat automaticamente)"}`);
+
             localStorage.removeItem(key);
         }
     });
 }, 30 * 1000); // Verifica a cada 30 segundos
+
 
 // --- Engrenagem flutuante e menu arrastável // ---
 (function() {
@@ -552,7 +639,7 @@ setInterval(() => {
     position: absolute;
     bottom: 60px;
     right: 0;
-    background: rgba(37, 211, 102, 0.2); /* verde semi-transparente */
+    background: rgba(37, 211, 102, 0.2);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
@@ -561,7 +648,7 @@ setInterval(() => {
     padding: 14px 16px;
     font-family: "Segoe UI", Tahoma, sans-serif;
     font-size: 14px;
-    width: 260px;
+    width: 280px;
     user-select: auto;
     border: 1px solid rgba(37, 211, 102, 0.5);
   `;
@@ -600,22 +687,25 @@ setInterval(() => {
   }
 
   // Botão limpar contato
-  const btnClearContact = createButton(
-    "Limpar notas e etiquetas (contato atual)",
-    () => {
-      if (!window.currentContact) {
-        alert("Nenhum contato selecionado.");
-        return;
-      }
-      if (confirm(`Confirma limpar notas, etiquetas e alarmes do contato "${window.currentContact}"?`)) {
-        localStorage.removeItem(`wa-note-${window.currentContact}`);
-        localStorage.removeItem(`wa-note-pos-${window.currentContact}`);
-        localStorage.removeItem(`label-${window.currentContact}`);
-        localStorage.removeItem(`followup-${window.currentContact}`);
-        alert(`Dados do contato "${window.currentContact}" limpos.`);
-      }
+const btnClearContact = createButton(
+  "Limpar notas e etiquetas (contato atual)",
+  () => {
+    const contact = getCurrentContact();
+    console.log("Contato atual:", contact);
+    if (!contact) {
+      alert("Nenhum contato selecionado.");
+      return;
     }
-  );
+    if (confirm(`Confirma limpar notas, etiquetas e alarmes do contato "${contact}"?`)) {
+      localStorage.removeItem(`wa-note-${contact}`);
+      localStorage.removeItem(`wa-note-pos-${contact}`);
+      localStorage.removeItem(`label-${contact}`);
+      localStorage.removeItem(`followup-${contact}`);
+      alert(`Dados do contato "${contact}" limpos.`);
+    }
+  }
+);
+
   menu.appendChild(btnClearContact);
 
   // Botão limpar alarmes vencidos
@@ -637,18 +727,32 @@ setInterval(() => {
   );
   menu.appendChild(btnClearExpiredAlarms);
 
-  // NOVO: Botão apagar todos os alarmes
-  const btnClearAllAlarms = createButton(
-    "🗑️ Apagar todos os alarmes",
-    () => {
-      if (confirm("Tem certeza que deseja apagar todos os alarmes ativos?")) {
-        const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
-        keys.forEach(key => localStorage.removeItem(key));
-        alert("Todos os alarmes foram apagados.");
-      }
-    }
-  );
-  menu.appendChild(btnClearAllAlarms);
+  // Toggle abrir chat automaticamente
+  const toggleAutoOpenChat = document.createElement("label");
+  toggleAutoOpenChat.style.cssText = `
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(37, 211, 102, 0.85);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 8px;
+  `;
+  toggleAutoOpenChat.innerHTML = `Abrir chat automaticamente ao disparar alarme <input type="checkbox" style="transform: scale(1.3); margin-left: 8px;">`;
+
+  const checkbox = toggleAutoOpenChat.querySelector("input");
+  checkbox.checked = localStorage.getItem("crm-auto-open-chat") === "true";
+
+  checkbox.addEventListener("change", () => {
+    localStorage.setItem("crm-auto-open-chat", checkbox.checked.toString());
+  });
+
+  menu.appendChild(toggleAutoOpenChat);
 
   container.appendChild(menu);
   document.body.appendChild(container);
@@ -699,7 +803,9 @@ setInterval(() => {
     container.style.right = "auto";
     container.style.position = "fixed";
   });
+
 })();
+
 
 
 
