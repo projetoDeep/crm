@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.22
+// @version      1.1.25
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -91,7 +91,31 @@ content.addEventListener("focus", () => {
     note.appendChild(dragHandle);
     note.appendChild(content);
     document.body.appendChild(note);
+
+    // Botão de follow-up
+const followBtn = document.createElement("button");
+followBtn.textContent = "⏰ Alarme ⏰";
+followBtn.style.cssText = `
+    background: #ffd966;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    width: 100%;
+    border-top: 1px solid #ffdf7e;
+`;
+
+followBtn.onclick = () => {
+    const delayMinutes = prompt(`Defina o tempo do alarme para o contato "${contact}": (ex: 10m, 2h, 1d utilize apenas numeros inteiros)`);
+    const minutes = parseInt(delayMinutes);
+    if (!isNaN(minutes) && minutes > 0) {
+        const triggerTime = Date.now() + minutes * 60 * 1000;
+        localStorage.setItem(`followup-${contact}`, triggerTime);
+        alert(`Alerta de follow-up ativado para ${minutes} minutos.`);
+    }
+};
+    note.appendChild(followBtn);
 }
+
 
 function startNoteDrag(e) {
     isDraggingNote = true;
@@ -448,4 +472,197 @@ style.textContent = `
     font-size: 13px;
 }
 `;
+
+setInterval(() => {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
+    const now = Date.now();
+    keys.forEach(key => {
+        const trigger = parseInt(localStorage.getItem(key));
+        if (trigger && now >= trigger) {
+            const contact = key.replace("followup-", "");
+            alert(`⏰ Alerta de Alarme: Confira o contato "${contact}"`);
+            localStorage.removeItem(key);
+        }
+    });
+}, 30 * 1000); // Verifica a cada 30 segundos
+
+// --- Engrenagem flutuante e menu arrastável // ---
+(function() {
+  if (document.querySelector("#crm-gear-container")) return;
+
+  const container = document.createElement("div");
+  container.id = "crm-gear-container";
+  container.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000000;
+    user-select: none;
+    cursor: grab;
+  `;
+
+  const gear = document.createElement("div");
+  gear.id = "crm-gear-icon";
+  gear.title = "Abrir menu CRM";
+  gear.style.cssText = `
+    width: 44px;
+    height: 44px;
+    background: #25D366;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    color: white;
+    user-select: none;
+  `;
+  gear.textContent = "⚙️";
+
+  container.appendChild(gear);
+
+  const menu = document.createElement("div");
+  menu.id = "crm-extra-functions-menu";
+  menu.style.cssText = `
+    display: none;
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    background: rgba(37, 211, 102, 0.2); /* verde semi-transparente */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(37, 211, 102, 0.35);
+    color: inherit;
+    padding: 14px 16px;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    font-size: 14px;
+    width: 260px;
+    user-select: auto;
+    border: 1px solid rgba(37, 211, 102, 0.5);
+  `;
+
+  const title = document.createElement("div");
+  title.textContent = "Funções Extras";
+  title.style.cssText = `
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    color: inherit;
+  `;
+  menu.appendChild(title);
+
+  function createButton(text, onClick) {
+    const btn = document.createElement("button");
+    btn.textContent = text;
+    btn.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(37, 211, 102, 0.85);
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+      user-select: none;
+    `;
+    btn.onmouseenter = () => btn.style.background = "rgba(37, 211, 102, 1)";
+    btn.onmouseleave = () => btn.style.background = "rgba(37, 211, 102, 0.85)";
+    btn.onclick = onClick;
+    return btn;
+  }
+
+  // Botão limpar contato
+  const btnClearContact = createButton(
+    "Limpar notas e etiquetas (contato atual)",
+    () => {
+      if (!window.currentContact) {
+        alert("Nenhum contato selecionado.");
+        return;
+      }
+      if (confirm(`Confirma limpar notas, etiquetas e alarmes do contato "${window.currentContact}"?`)) {
+        localStorage.removeItem(`wa-note-${window.currentContact}`);
+        localStorage.removeItem(`wa-note-pos-${window.currentContact}`);
+        localStorage.removeItem(`label-${window.currentContact}`);
+        localStorage.removeItem(`followup-${window.currentContact}`);
+        alert(`Dados do contato "${window.currentContact}" limpos.`);
+      }
+    }
+  );
+  menu.appendChild(btnClearContact);
+
+  // Botão limpar alarmes vencidos
+  const btnClearExpiredAlarms = createButton(
+    "Limpar todos alarmes vencidos",
+    () => {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
+      const now = Date.now();
+      let count = 0;
+      keys.forEach(key => {
+        const trigger = parseInt(localStorage.getItem(key));
+        if (trigger && now >= trigger) {
+          localStorage.removeItem(key);
+          count++;
+        }
+      });
+      alert(`Foram limpos ${count} alarmes vencidos.`);
+    }
+  );
+  menu.appendChild(btnClearExpiredAlarms);
+
+  container.appendChild(menu);
+  document.body.appendChild(container);
+
+  gear.addEventListener("click", e => {
+    e.stopPropagation();
+    menu.style.display = (menu.style.display === "none") ? "block" : "none";
+  });
+
+  document.addEventListener("click", () => {
+    if (menu.style.display === "block") {
+      menu.style.display = "none";
+    }
+  });
+
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  container.addEventListener("mousedown", e => {
+    isDragging = true;
+    dragOffsetX = e.clientX - container.getBoundingClientRect().left;
+    dragOffsetY = e.clientY - container.getBoundingClientRect().top;
+    container.style.cursor = "grabbing";
+    e.preventDefault();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (isDragging) {
+      isDragging = false;
+      container.style.cursor = "grab";
+    }
+  });
+
+  window.addEventListener("mousemove", e => {
+    if (!isDragging) return;
+    let x = e.clientX - dragOffsetX;
+    let y = e.clientY - dragOffsetY;
+    const maxX = window.innerWidth - container.offsetWidth;
+    const maxY = window.innerHeight - container.offsetHeight;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x > maxX) x = maxX;
+    if (y > maxY) y = maxY;
+    container.style.left = x + "px";
+    container.style.top = y + "px";
+    container.style.bottom = "auto";
+    container.style.right = "auto";
+    container.style.position = "fixed";
+  });
+})();
+
+
 document.head.appendChild(style);
