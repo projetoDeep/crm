@@ -6,8 +6,8 @@
 // @author       Você
 // @match        https://web.whatsapp.com/*
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/crm-script.users.js
-// @downloadURL  https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/crm-script.users.js
+// @updateURL    https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/loader.users.js
+// @downloadURL  https://raw.githubusercontent.com/projetoDeep/crm/refs/heads/main/loader.users.js
 // ==/UserScript==
 
 (function() {
