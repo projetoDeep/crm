@@ -21,28 +21,8 @@ function isVideo(url) {
   return url && /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
 }
 
-function isMilwaukeeMp4(url) {
-  return url && /widen\.net\/s\/.*\.mp4/i.test(url);
-}
-
-function convertToEmbedUrl(url) {
-  if (!url) return '';
-  const cleanUrl = url.split('?')[0];
-  return cleanUrl.replace("/s/", "/view/video/");
-}
-
-function isVimeo(url) {
-  return url && /vimeo\.com\/(\d+)/i.test(url);
-}
-
-function getVimeoEmbedUrl(url) {
-  const match = url.match(/vimeo\.com\/(\d+)/i);
-  return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&loop=1&muted=1&autopause=0&background=1` : null;
-}
-
 function getVideoType(url) {
   if (!url) return 'video/mp4';
-  if (url.includes('.mp4')) return 'video/mp4';
   if (url.includes('.webm')) return 'video/webm';
   if (url.includes('.ogg')) return 'video/ogg';
   return 'video/mp4';
@@ -57,51 +37,28 @@ function showPopup(campaign, index) {
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-  let media = '';
   const src = campaign.image;
-  const isVideoContent = isVideo(src) || isVimeo(src) || isMilwaukeeMp4(src);
+  const isVideoContent = isVideo(src);
 
-  if (src) {
-    if (isMilwaukeeMp4(src)) {
-media = `
-  <div class="media-container video-wrapper">
-    <video 
-      autoplay 
-      muted 
-      loop 
-      playsinline 
-      class="popup-media noselect"
-      style="width: 100%; user-select: none; object-fit: cover; border-radius: inherit;"
-      poster="${campaign.poster || ''}">
-      <source src="${src}" type="${getVideoType(src)}">
-    </video>
-  </div>`;
-
-    } else if (isVimeo(src)) {
-      const embedUrl = getVimeoEmbedUrl(src);
-      if (embedUrl) {
-        media = `
-          <div class="media-container vimeo-wrapper">
-            <iframe src="${embedUrl}" 
-                    frameborder="0" 
-                    allow="autoplay; fullscreen; picture-in-picture" 
-                    allowfullscreen 
-                    class="popup-video"></iframe>
-          </div>`;
-      }
-    } else if (isVideo(src)) {
-      media = `
-        <div class="media-container video-wrapper">
-          <video autoplay muted loop playsinline class="popup-video">
-            <source src="${src}" type="${getVideoType(src)}">
-          </video>
-        </div>`;
-    } else {
-      media = `
-        <div class="media-container image-wrapper">
-          <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
-        </div>`;
-    }
+  let media = '';
+  if (isVideoContent) {
+    media = `
+      <div class="media-container video-wrapper">
+        <video 
+          autoplay 
+          muted 
+          loop 
+          playsinline 
+          poster="${campaign.poster || ''}"
+          class="popup-media">
+          <source src="${src}" type="${getVideoType(src)}">
+        </video>
+      </div>`;
+  } else if (src) {
+    media = `
+      <div class="media-container image-wrapper">
+        <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
+      </div>`;
   }
 
   popup.innerHTML = `
@@ -145,7 +102,6 @@ function fixUrl(url) {
   return /^https?:\/\//i.test(url) ? url : 'https://' + url;
 }
 
-// CSS isolado e clean
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
@@ -195,16 +151,6 @@ style.textContent = `
   border-radius: inherit;
   background-color: #000;
 }
-
-.media-container.video-wrapper {
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 12px;
-  background-color: background-color: transparent; /* evita fundo branco se vídeo não preencher */
-}
-
-
 
 .popup-text {
   padding: 15px;
@@ -263,10 +209,6 @@ style.textContent = `
 
   .popup-content, .popup-content.video-content {
     width: 90vw;
-  }
-
-  .media-container {
-    aspect-ratio: 16 / 9;
   }
 }
 `;
