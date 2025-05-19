@@ -98,7 +98,20 @@ style.textContent = `
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
+  border: 2px solid #00793f;
+  box-shadow: 0 0 8px #00793f, 0 0 12px #00793f88;
+  animation: neonPulse 2s infinite alternate;
 }
+
+@keyframes neonPulse {
+  from {
+    box-shadow: 0 0 8px #00793f, 0 0 12px #00793f88;
+  }
+  to {
+    box-shadow: 0 0 16px #00793f, 0 0 24px #00793faa;
+  }
+}
+
 
 .popup-media {
   width: 100%;
