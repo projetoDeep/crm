@@ -98,8 +98,8 @@ style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
   position: fixed;
   top: 75vh; /* ← Mais abaixo da tela */
-  right: 20px;
-  left: auto;
+  right: auto;
+  left: 20px;
   width: 320px;
   background: #fff;
   border-radius: 12px;
