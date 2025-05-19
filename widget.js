@@ -98,6 +98,7 @@ style.textContent = `
   position: fixed;
   top: 20px;
   right: 20px;
+  left: auto; /* FORÇA popup no canto direito */
   width: 320px;
   background: #fff;
   border-radius: 12px;
@@ -185,4 +186,19 @@ style.textContent = `
   }
 }
 `;
+document.head.appendChild(style);
+
+// Trecho do JS que abre o link na MESMA aba
+popup.onclick = (e) => {
+  if (e.target.classList.contains('popup-close')) {
+    // Fechar popup
+    trackEvent(campaign.url, "close");
+    removePopup(popupId);
+  } else if (campaign.url) {
+    const url = fixUrl(campaign.url);
+    trackEvent(campaign.url, "click");
+    window.location.href = url;  // Abre na mesma aba
+    removePopup(popupId);
+  }
+};
 document.head.appendChild(style);
