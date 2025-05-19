@@ -107,88 +107,63 @@ style.textContent = `
 .promo-popup {
   position: fixed;
   bottom: 20px;
-  left: 20px;
+  right: 20px;
   z-index: 10000;
   transition: all 0.3s ease;
   opacity: 1;
-  max-width: 90vw;
-  animation: fadeInUp 0.3s ease forwards;
+  width: 320px;
+  height: 180px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.4s ease forwards;
 }
 
 .popup-content {
-  position: relative;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  overflow: hidden;
-  width: 300px;
-}
-
-.popup-content.video-content {
-  width: 350px;
-}
-
-.popup-border {
-  padding: 0;
-  background: none;
-  border-radius: 8px 8px 0 0;
-}
-
-.media-container {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border-radius: 12px;
+  height: 100%;
   background-color: #000;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .popup-media {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  border-radius: inherit;
-  background-color: #000;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .popup-text {
-  padding: 15px;
-  text-align: center;
-}
-
-.popup-text h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.popup-body {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #666;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px 12px;
+  font-size: 13px;
+  z-index: 2;
 }
 
 .popup-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 8px;
+  right: 8px;
   width: 24px;
   height: 24px;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.8);
+  color: #000;
   border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
+  z-index: 3;
   cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
 }
+
 
 .popup-close:hover {
   background: #fff;
