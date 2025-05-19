@@ -92,12 +92,12 @@ function trackEvent(website, eventType) {
   }).catch(err => console.error("Erro ao registrar evento:", err));
 }
 
-const style = document.createElement('style');
 style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 20px; /* Para canto direito no desktop */
+  /* Se quiser no canto esquerdo, troque por: left: 20px; e remova right */
   width: 320px;
   background: #fff;
   border-radius: 12px;
@@ -159,8 +159,9 @@ style.textContent = `
 @media(max-width: 480px) {
   #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
     top: 15px;
-    right: 5%;
-    left: 5%;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
     width: auto;
     padding: 12px;
   }
