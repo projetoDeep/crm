@@ -20,11 +20,6 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-function unescapeHtml(escapedStr) {
-  const doc = new DOMParser().parseFromString(escapedStr, "text/html");
-  return doc.documentElement.textContent;
-}
-
 function showPopup(campaign, index) {
   const popupId = `promo-popup-${index}`;
   const oldPopup = document.getElementById(popupId);
@@ -32,14 +27,15 @@ function showPopup(campaign, index) {
 
   const popup = document.createElement('div');
   popup.id = popupId;
-  
-console.log('campaign.message raw:', campaign.message);
+
+  console.log('campaign.message raw:', campaign.message); // ← para debug
+
   popup.innerHTML = `
     <div class="popup-content">
       ${campaign.image ? `<img src="${campaign.image}" alt="Promoção" class="popup-img" />` : ''}
       <div class="popup-text">
         <h3>${campaign.title}</h3>
-        <div class="popup-body">${unescapeHtml(campaign.message)}</div>
+        <div class="popup-body">${campaign.message}</div>
       </div>
       <span class="popup-close" title="Fechar">x</span>
     </div>
@@ -56,14 +52,12 @@ console.log('campaign.message raw:', campaign.message);
     } else if (campaign.url) {
       const url = fixUrl(campaign.url);
       trackEvent(campaign.url, "click");
-      // Abre na MESMA aba (como pediu)
       window.location.href = url;
       removePopup(popupId);
     }
   };
 
   document.body.appendChild(popup);
-
   setTimeout(() => removePopup(popupId), 15000);
 }
 
@@ -94,18 +88,19 @@ function trackEvent(website, eventType) {
     body: JSON.stringify({
       website,
       event: eventType,
-      origin: location.hostname // ALTEREI PARA "origin" evitar sobrescrever
+      origin: location.hostname
     })
   }).catch(err => console.error("Erro ao registrar evento:", err));
 }
 
+// Estilo
 const style = document.createElement('style');
 style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
   position: fixed;
-  top: 70vh; /* ← Mais abaixo da tela */
+  top: 75vh;
   right: auto;
-  left: 1%;
+  left: 8%;
   width: 320px;
   background: #fff;
   border-radius: 12px;
@@ -118,9 +113,6 @@ style.textContent = `
   z-index: 10000;
   max-width: 90vw;
   margin-top: 10px;
-}
-#promo-popup-0:hover, #promo-popup-1:hover, #promo-popup-2:hover, #promo-popup-3:hover, #promo-popup-4:hover, #promo-popup-5:hover, #promo-popup-6:hover, #promo-popup-7:hover, #promo-popup-8:hover, #promo-popup-9:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
 }
 .popup-content {
   display: flex;
@@ -144,7 +136,7 @@ style.textContent = `
   font-weight: bold;
   line-height: 1.2;
 }
-.popup-text p {
+.popup-body {
   margin: 0;
   font-size: 14px;
   line-height: 1.4;
@@ -172,10 +164,6 @@ style.textContent = `
     width: auto;
     padding: 12px;
   }
-  .popup-content {
-    flex-direction: row;
-    align-items: center;
-  }
   .popup-img {
     width: 50px;
     height: 50px;
@@ -183,13 +171,8 @@ style.textContent = `
   .popup-text h3 {
     font-size: 15px;
   }
-  .popup-text p {
+  .popup-body {
     font-size: 13px;
-  }
-  .popup-close {
-    font-size: 20px;
-    top: 2px;
-    right: 6px;
   }
 }
 `;
