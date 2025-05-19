@@ -17,92 +17,51 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-function getVideoType(url) {
-  if (!url) return 'video/mp4';
-  if (url.includes('.mp4')) return 'video/mp4';
-  if (url.includes('.webm')) return 'video/webm';
-  if (url.includes('.ogg')) return 'video/ogg';
-  return 'video/mp4';
-}
-
 function showPopup(campaign, index) {
   const popupId = `promo-popup-${index}`;
   const oldPopup = document.getElementById(popupId);
   if (oldPopup) oldPopup.remove();
 
-  // Criar popup container (pequeno thumbnail)
   const popup = document.createElement('div');
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-  // Video thumbnail curto (8 segundos)
-  const videoSrc = campaign.image;
-  const videoType = getVideoType(videoSrc);
+  const thumbVideo = `
+    <div class="media-container" id="video-thumb-container-${index}">
+      <video autoplay muted loop playsinline class="popup-media" id="thumb-video-${index}">
+        <source src="${campaign.image}" type="video/mp4">
+      </video>
+      <span class="popup-close" onclick="removePopup('${popupId}')">×</span>
+    </div>`;
 
-  // Vídeo thumbnail com autoplay, muted, loop e playsinline (8s)
-  const thumbnailVideo = document.createElement('video');
-  thumbnailVideo.className = 'popup-thumb-video noselect';
-  thumbnailVideo.autoplay = true;
-  thumbnailVideo.muted = true;
-  thumbnailVideo.loop = true;
-  thumbnailVideo.playsInline = true;
-  thumbnailVideo.src = videoSrc;
-  thumbnailVideo.type = videoType;
-  thumbnailVideo.style.objectFit = 'cover';
+  popup.innerHTML = `
+    <div class="popup-content video-content">${thumbVideo}</div>
+  `;
 
-  popup.appendChild(thumbnailVideo);
   document.body.appendChild(popup);
 
-  // Ao clicar no thumbnail abre o vídeo full screen (modal)
-  popup.onclick = (e) => {
-    if (e.target !== popup) return; // só dispara ao clicar fora do vídeo no popup
-    openFullVideo(campaign);
-  };
-  thumbnailVideo.onclick = (e) => {
-    e.stopPropagation();
-    openFullVideo(campaign);
+  // Ao clicar no vídeo, abrir modal com o vídeo completo
+  const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
+  thumbContainer.onclick = (e) => {
+    if (e.target.classList.contains('popup-close')) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'video-overlay';
+
+    overlay.innerHTML = `
+      <div class="video-full">
+        <video autoplay muted loop playsinline class="popup-video-full">
+          <source src="${campaign.full || campaign.image}" type="video/mp4">
+        </video>
+        <span class="popup-close-full" onclick="this.parentElement.parentElement.remove()">×</span>
+      </div>
+    `;
+    document.body.appendChild(overlay);
   };
 
-  // Fecha após 15s se não clicarem
-  setTimeout(() => removePopup(popupId), 15000);
+  setTimeout(() => removePopup(popupId), 15000); // Tempo de exibição do popup
 }
 
-function openFullVideo(campaign) {
-  // Verifica se já existe modal aberto
-  if (document.getElementById('promo-video-modal')) return;
-
-  const modal = document.createElement('div');
-  modal.id = 'promo-video-modal';
-  modal.className = 'promo-video-modal';
-
-  // Video full screen
-  const videoFull = document.createElement('video');
-  videoFull.className = 'promo-full-video noselect';
-  videoFull.autoplay = true;
-  videoFull.muted = false;
-  videoFull.loop = false;
-  videoFull.controls = true;
-  videoFull.playsInline = true;
-  videoFull.src = campaign.image;
-  videoFull.type = getVideoType(campaign.image);
-
-  modal.appendChild(videoFull);
-
-  // Botão fechar
-  const closeBtn = document.createElement('span');
-  closeBtn.className = 'promo-video-close';
-  closeBtn.innerText = '×';
-  closeBtn.title = 'Fechar';
-  closeBtn.onclick = () => {
-    videoFull.pause();
-    modal.remove();
-  };
-  modal.appendChild(closeBtn);
-
-  document.body.appendChild(modal);
-}
-
-// Remove popup thumbnail
 function removePopup(id) {
   const popup = document.getElementById(id);
   if (popup) {
@@ -111,7 +70,7 @@ function removePopup(id) {
   }
 }
 
-// CSS isolado e clean
+// CSS
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
@@ -119,75 +78,88 @@ style.textContent = `
   bottom: 20px;
   left: 20px;
   z-index: 10000;
-  width: 120px;
-  height: 213px; /* proporção 9:16 estilo story */
+  opacity: 1;
+  animation: fadeInUp 0.3s ease forwards;
+  max-width: 160px;
+}
+
+.popup-content {
+  position: relative;
+  background: transparent;
   border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+.media-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  background: black;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  background-color: #000;
-  animation: fadeInUp 0.3s ease forwards;
-  user-select: none;
 }
 
-.popup-thumb-video {
+.popup-media {
   width: 100%;
   height: 100%;
-  display: block;
-  border-radius: inherit;
   object-fit: cover;
-  background-color: #000;
+  border-radius: inherit;
 }
 
-.promo-video-modal {
+.video-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.85);
-  z-index: 11000;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 10001;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
 }
 
-.promo-full-video {
-  max-width: 90vw;
-  max-height: 90vh;
+.video-full {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 9 / 16;
   border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
-  background-color: #000;
+  overflow: hidden;
+  background: black;
 }
 
-.promo-video-close {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  font-size: 30px;
+.popup-video-full {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.popup-close, .popup-close-full {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255,255,255,0.9);
+  color: #000;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
   font-weight: bold;
-  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  user-select: none;
-  z-index: 12000;
-  transition: transform 0.2s ease;
+  z-index: 10;
 }
 
-.promo-video-close:hover {
-  transform: scale(1.2);
+.popup-close:hover, .popup-close-full:hover {
+  background: #fff;
+  transform: scale(1.1);
 }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 480px) {
-  .promo-popup {
-    width: 90px;
-    height: 160px;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
 }
 `;
 document.head.appendChild(style);
