@@ -1,3 +1,4 @@
+// WIDGET POPUP COM TEASER 8s E VIDEO CENTRALIZADO
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
@@ -6,10 +7,10 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
         data.forEach((campaign, i) => {
-          setTimeout(() => showPopup(campaign, i), i * 10000);
+          setTimeout(() => showTeaser(campaign, i), i * 10000);
         });
       } else {
-        showPopup(data, 0);
+        showTeaser(data, 0);
       }
     } catch (e) {
       console.error("Resposta inválida:", text);
@@ -17,218 +18,109 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-function isVideo(url) {
-  return url && /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+function showTeaser(campaign, index) {
+  const teaserId = `popup-teaser-${index}`;
+  const oldTeaser = document.getElementById(teaserId);
+  if (oldTeaser) oldTeaser.remove();
+
+  const teaser = document.createElement('div');
+  teaser.id = teaserId;
+  teaser.className = 'popup-teaser';
+  teaser.innerHTML = `
+    <video autoplay muted loop playsinline class="teaser-video">
+      <source src="${campaign.image}" type="video/mp4">
+    </video>
+  `;
+  document.body.appendChild(teaser);
+
+  teaser.onclick = () => showFullPopup(campaign, index);
 }
 
-function isMilwaukeeMp4(url) {
-  return url && /widen\.net\/s\/.*\.mp4/i.test(url);
-}
-
-function convertToEmbedUrl(url) {
-  if (!url) return '';
-  const cleanUrl = url.split('?')[0];
-  return cleanUrl.replace("/s/", "/view/video/");
-}
-
-function isVimeo(url) {
-  return url && /vimeo\.com\/(\d+)/i.test(url);
-}
-
-function getVimeoEmbedUrl(url) {
-  const match = url.match(/vimeo\.com\/(\d+)/i);
-  return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&loop=1&muted=1&autopause=0&background=1` : null;
-}
-
-function getVideoType(url) {
-  if (!url) return 'video/mp4';
-  if (url.includes('.mp4')) return 'video/mp4';
-  if (url.includes('.webm')) return 'video/webm';
-  if (url.includes('.ogg')) return 'video/ogg';
-  return 'video/mp4';
-}
-
-function showPopup(campaign, index) {
-  const popupId = `promo-popup-${index}`;
-  const oldPopup = document.getElementById(popupId);
-  if (oldPopup) oldPopup.remove();
+function showFullPopup(campaign, index) {
+  const fullId = `popup-full-${index}`;
+  const existing = document.getElementById(fullId);
+  if (existing) existing.remove();
 
   const popup = document.createElement('div');
-  popup.id = popupId;
-  popup.className = 'promo-popup';
-
-  let media = '';
-  const src = campaign.image;
-  const isVideoContent = isVideo(src) || isVimeo(src) || isMilwaukeeMp4(src);
-
-  if (src) {
-    if (isMilwaukeeMp4(src)) {
-      media = `
-        <div class="media-container video-wrapper">
-          <video 
-            autoplay 
-            muted 
-            loop 
-            playsinline 
-            class="popup-media"
-            poster="${campaign.poster || ''}">
-            <source src="${src}" type="${getVideoType(src)}">
-          </video>
-        </div>`;
-
-    } else if (isVimeo(src)) {
-      const embedUrl = getVimeoEmbedUrl(src);
-      if (embedUrl) {
-        media = `
-          <div class="media-container vimeo-wrapper">
-            <iframe src="${embedUrl}" 
-                    frameborder="0" 
-                    allow="autoplay; fullscreen; picture-in-picture" 
-                    allowfullscreen 
-                    class="popup-video"></iframe>
-          </div>`;
-      }
-    } else if (isVideo(src)) {
-      media = `
-        <div class="media-container video-wrapper">
-          <video autoplay muted loop playsinline class="popup-media">
-            <source src="${src}" type="${getVideoType(src)}">
-          </video>
-        </div>`;
-    } else {
-      media = `
-        <div class="media-container image-wrapper">
-          <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
-        </div>`;
-    }
-  }
-
+  popup.id = fullId;
+  popup.className = 'fullscreen-popup';
   popup.innerHTML = `
-    <div class="popup-content ${isVideoContent ? 'video-content' : ''}">
-      <div class="popup-border">
-        ${media}
-      </div>
-      <div class="popup-text">
-        <h3>${campaign.title || ''}</h3>
-        <div class="popup-body">${campaign.message || ''}</div>
-      </div>
-      <span class="popup-close" title="Fechar">×</span>
+    <div class="video-container">
+      <video autoplay muted loop playsinline class="story-video">
+        <source src="${campaign.full || campaign.image}" type="video/mp4">
+      </video>
+      <span class="close-full">×</span>
     </div>
   `;
-
   document.body.appendChild(popup);
 
-  popup.onclick = (e) => {
-    if (e.target.classList.contains('popup-close')) {
-      removePopup(popupId);
-    } else if (campaign.url) {
-      const url = fixUrl(campaign.url);
-      window.open(url, '_blank');
-      removePopup(popupId);
-    }
-  };
-
-  setTimeout(() => removePopup(popupId), 15000);
-}
-
-function removePopup(id) {
-  const popup = document.getElementById(id);
-  if (popup) {
-    popup.style.opacity = '0';
-    setTimeout(() => popup.remove(), 500);
-  }
-}
-
-function fixUrl(url) {
-  if (!url) return '';
-  return /^https?:\/\//i.test(url) ? url : 'https://' + url;
+  popup.querySelector('.close-full').onclick = () => popup.remove();
 }
 
 const style = document.createElement('style');
 style.textContent = `
-.promo-popup {
+.popup-teaser {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   z-index: 10000;
-  transition: all 0.3s ease;
-  opacity: 1;
-  width: 270px;
-  height: 480px;
-  border-radius: 16px;
+  width: 120px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  animation: fadeInUp 0.4s ease forwards;
-}
-
-.popup-content {
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.popup-media {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.popup-text {
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 12px;
-  font-size: 14px;
-  z-index: 2;
-}
-
-.popup-text h3 {
-  margin: 0 0 5px 0;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.popup-body {
-  margin: 0;
-  font-size: 13px;
-}
-
-.popup-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 24px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.8);
-  color: #000;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   cursor: pointer;
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.teaser-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }
 
-@media (max-width: 480px) {
-  .promo-popup {
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 15px;
-    width: 90vw;
-    height: calc(90vw * 16 / 9);
-  }
-}`;
+.fullscreen-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.video-container {
+  position: relative;
+  width: 320px;
+  aspect-ratio: 9 / 16;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.story-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.close-full {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #fff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+`;
 document.head.appendChild(style);
