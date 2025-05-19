@@ -98,7 +98,7 @@ style.textContent = `
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid #00793f;
+  border: 6px solid #00793f;
   box-shadow: 0 0 8px #00793f, 0 0 12px #00793f88;
   animation: neonPulse 2s infinite alternate;
 }
