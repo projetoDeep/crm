@@ -27,7 +27,8 @@ function showPopup(campaign, index) {
 
   const popup = document.createElement('div');
   popup.id = popupId;
-
+  
+console.log('campaign.message raw:', campaign.message);
   popup.innerHTML = `
     <div class="popup-content">
       ${campaign.image ? `<img src="${campaign.image}" alt="Promoção" class="popup-img" />` : ''}
