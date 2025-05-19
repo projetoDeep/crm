@@ -36,17 +36,16 @@ function convertToEmbedUrl(url) {
 }
 
 function isVimeo(url) {
-  return url && /vimeo\.com\/(\d+)/.test(url);
+  return url && /vimeo\.com\/(\d+)/i.test(url);
 }
 
 function getVimeoEmbedUrl(url) {
-  const match = url.match(/vimeo\.com\/(\d+)/);
-  if (match && match[1]) {
-    return `https://player.vimeo.com/video/${match[1]}?autoplay=1&muted=1&playsinline=1`;
-  }
-  return null;
+  const match = url.match(/vimeo\.com\/(\d+)/i);
+  if (!match) return null;
+  
+  const videoId = match[1];
+  return `https://player.vimeo.com/video/${videoId}?autoplay=1&loop=0&muted=1&autopause=0&background=0`;
 }
-
 
 function getVideoType(url) {
   if (!url) return 'video/mp4';
@@ -75,23 +74,27 @@ function showPopup(campaign, index) {
           <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
         </div>`;
     } else if (isVimeo(src)) {
-      const embed = getVimeoEmbedUrl(src);
-      if (embed) {
+      const embedUrl = getVimeoEmbedUrl(src);
+      if (embedUrl) {
         media = `
-          <div class="popup-iframe-wrapper">
-            <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen class="popup-iframe"></iframe>
+          <div class="popup-iframe-wrapper vimeo-container">
+            <iframe src="${embedUrl}" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowfullscreen 
+                    class="popup-iframe vimeo-iframe"></iframe>
           </div>`;
       }
     } else if (isVideo(src)) {
       media = `
         <div class="popup-video-wrapper">
-          <video autoplay muted playsinline controls class="popup-video">
+          <video autoplay muted playsinline loop class="popup-video">
             <source src="${src}" type="${getVideoType(src)}">
             Seu navegador não suporta vídeo.
           </video>
         </div>`;
     } else {
-      media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
+      media = `<img src="${src}" alt="Promoção" class="popup-img" onerror="this.style.display='none'"/>`;
     }
   }
 
@@ -107,22 +110,35 @@ function showPopup(campaign, index) {
   `;
 
   popup.style.cursor = 'pointer';
+  document.body.appendChild(popup);
 
-  trackEvent(campaign.url, "view");
+  // Disparar o play manualmente se for Vimeo
+  if (isVimeo(src)) {
+    const iframe = popup.querySelector('.vimeo-iframe');
+    if (iframe) {
+      // Espera o iframe carregar antes de tentar comunicar
+      iframe.onload = function() {
+        try {
+          const player = new Vimeo.Player(iframe);
+          player.play().catch(e => console.log('Vimeo autoplay blocked:', e));
+        } catch (e) {
+          console.error('Vimeo Player API error:', e);
+        }
+      };
+    }
+  }
 
+  // Configurar eventos de clique
   popup.onclick = (e) => {
     if (e.target.classList.contains('popup-close')) {
-      trackEvent(campaign.url, "close");
       removePopup(popupId);
     } else if (campaign.url) {
       const url = fixUrl(campaign.url);
-      trackEvent(campaign.url, "click");
       window.open(url, '_blank');
       removePopup(popupId);
     }
   };
 
-  document.body.appendChild(popup);
   setTimeout(() => removePopup(popupId), 15000);
 }
 
@@ -130,9 +146,7 @@ function removePopup(id) {
   const popup = document.getElementById(id);
   if (popup) {
     popup.style.opacity = '0';
-    setTimeout(() => {
-      popup.remove();
-    }, 500);
+    setTimeout(() => popup.remove(), 500);
   }
 }
 
@@ -142,77 +156,58 @@ function fixUrl(url) {
   return 'https://' + url;
 }
 
-function trackEvent(website, eventType) {
-  if (!website) return;
-  fetch("https://assistaagoraaqui.shop:3000/events", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      website,
-      event: eventType,
-      origin: location.hostname
-    })
-  }).catch(err => console.error("Erro ao registrar evento:", err));
+// Carrega a API do Vimeo dinamicamente
+function loadVimeoAPI() {
+  const script = document.createElement('script');
+  script.src = 'https://player.vimeo.com/api/player.js';
+  document.body.appendChild(script);
 }
 
-// Estilos CSS (continua igual)
+// Inicializa quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+  loadVimeoAPI();
+});
+
+// Estilos CSS atualizados
 const style = document.createElement('style');
 style.textContent = `
-#promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, 
-#promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
+.promo-popup {
   position: fixed;
   bottom: 20px;
   left: 20px;
   width: 320px;
-  background: #fff;
+  background: white;
   border-radius: 12px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   padding: 15px;
   font-family: Arial, sans-serif;
-  color: #333;
-  opacity: 1;
-  transition: opacity 0.5s ease;
   z-index: 10000;
-  max-width: 90vw;
+  transition: opacity 0.3s;
+  opacity: 1;
 }
 
 .popup-content {
-  display: flex;
-  align-items: flex-start;
   position: relative;
-  gap: 12px;
-  flex-direction: column;
 }
 
 .popup-img, .popup-video-wrapper, .popup-iframe-wrapper {
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
-}
-
-.popup-img {
-  height: auto;
-  max-height: 180px;
-  object-fit: cover;
-}
-
-.popup-video-wrapper {
-  background: #000;
+  margin-bottom: 10px;
 }
 
 .popup-video {
   width: 100%;
   max-height: 180px;
   display: block;
+  background: black;
 }
 
 .popup-iframe-wrapper {
   position: relative;
   padding-bottom: 56.25%;
   height: 0;
-  background: #000;
 }
 
 .popup-iframe-wrapper iframe {
@@ -224,22 +219,8 @@ style.textContent = `
   border: none;
 }
 
-.popup-text {
-  flex: 1;
-  width: 100%;
-}
-
-.popup-text h3 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: bold;
-  line-height: 1.2;
-}
-
-.popup-body {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
+.vimeo-container {
+  background: transparent;
 }
 
 .popup-close {
@@ -247,30 +228,16 @@ style.textContent = `
   top: 5px;
   right: 8px;
   font-size: 18px;
-  font-weight: bold;
-  color: #888;
   cursor: pointer;
-  transition: color 0.2s ease;
-  line-height: 1;
-  user-select: none;
+  z-index: 10;
 }
 
-.popup-close:hover {
-  color: #000;
-}
-
-@media(max-width: 480px) {
-  #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, 
-  #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
-    bottom: 10px;
-    left: 5%;
-    right: 5%;
+@media (max-width: 480px) {
+  .promo-popup {
+    left: 10px;
+    right: 10px;
     width: auto;
-    padding: 12px;
-  }
-  
-  .popup-video, .popup-img {
-    max-height: 150px;
+    bottom: 10px;
   }
 }
 `;
