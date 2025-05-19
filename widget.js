@@ -63,12 +63,20 @@ function showPopup(campaign, index) {
 
   if (src) {
     if (isMilwaukeeMp4(src)) {
-      media = `
-        <div class="media-container video-wrapper">
-          <video autoplay muted loop playsinline class="popup-video">
-            <source src="${src}" type="video/mp4">
-          </video>
-        </div>`;
+media = `
+  <div class="media-container video-wrapper">
+    <video 
+      autoplay 
+      muted 
+      loop 
+      playsinline 
+      class="popup-media noselect"
+      style="width: 100%; user-select: none; object-fit: cover; border-radius: inherit;"
+      poster="${campaign.poster || ''}">
+      <source src="${src}" type="${getVideoType(src)}">
+    </video>
+  </div>`;
+
     } else if (isVimeo(src)) {
       const embedUrl = getVimeoEmbedUrl(src);
       if (embedUrl) {
@@ -172,23 +180,22 @@ style.textContent = `
 
 .media-container {
   width: 100%;
-  height: auto;
-  position: relative;
-  overflow: hidden;
-  background-color: black;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: #000;
+  position: relative;
 }
 
 .popup-media {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: auto;
+  width: 100%;
   height: 100%;
-  transform: translate(-50%, -50%);
   object-fit: cover;
-  background-color: black;
+  display: block;
+  border-radius: inherit;
+  background-color: #000;
 }
+
 
 
 .vimeo-wrapper iframe {
