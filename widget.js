@@ -33,7 +33,7 @@ function showPopup(campaign, index) {
       ${campaign.image ? `<img src="${campaign.image}" alt="Promoção" class="popup-img" />` : ''}
       <div class="popup-text">
         <h3>${campaign.title}</h3>
-        <p>${campaign.message}</p>
+        <div class="popup-body">${campaign.message}</div>
       </div>
       <span class="popup-close" title="Fechar">x</span>
     </div>
