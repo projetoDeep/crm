@@ -51,31 +51,22 @@ function showPopup(campaign, index) {
     if (isVimeo(src)) {
       const thumbnail = getVimeoThumbnail(src);
       media = `
-        <div class="border-handler">
-          <div class="inner-shape"></div>
-          <div class="inner">
-            <video autoplay loop playsinline muted poster="${thumbnail}" class="popup-video">
-              <source src="https://player.vimeo.com/video/${src.match(/vimeo\.com\/(\d+)/i)[1]}/mp4" type="video/mp4">
-            </video>
-          </div>
+        <div class="video-container">
+          <video autoplay loop playsinline muted poster="${thumbnail}" class="popup-video">
+            <source src="https://player.vimeo.com/video/${src.match(/vimeo\.com\/(\d+)/i)[1]}/mp4" type="video/mp4">
+          </video>
         </div>`;
     } else if (isVideo(src)) {
       media = `
-        <div class="border-handler">
-          <div class="inner-shape"></div>
-          <div class="inner">
-            <video autoplay loop playsinline muted class="popup-video">
-              <source src="${src}" type="${src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'}">
-            </video>
-          </div>
+        <div class="video-container">
+          <video autoplay loop playsinline muted class="popup-video">
+            <source src="${src}" type="${src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'}">
+          </video>
         </div>`;
     } else {
       media = `
-        <div class="border-handler">
-          <div class="inner-shape"></div>
-          <div class="inner">
-            <img src="${src}" class="popup-image" alt="Promoção"/>
-          </div>
+        <div class="image-container">
+          <img src="${src}" class="popup-image" alt="Promoção"/>
         </div>`;
     }
   }
@@ -118,7 +109,7 @@ function removePopup(id) {
   if (popup) popup.remove();
 }
 
-// Estilos CSS no estilo Widdeo moderno
+// Estilos CSS ultra clean - sem bordas brancas
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
@@ -133,44 +124,21 @@ style.textContent = `
 .popup-content {
   width: 300px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border-radius: 8px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
 }
 
-.popup-content.video-content {
+.video-content {
   width: 320px;
 }
 
-.border-handler {
-  position: relative;
-  width: 100%;
-  padding: 8px;
-  background: linear-gradient(145deg, #f5f5f5, #e0e0e0);
-  border-radius: 8px 8px 0 0;
-}
-
-.inner-shape {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.inner {
-  position: relative;
+.video-container, .image-container {
   width: 100%;
   height: 200px;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
 }
 
-.video-content .inner {
+.video-content .video-container {
   height: 220px;
 }
 
@@ -179,12 +147,13 @@ style.textContent = `
   height: 100%;
   object-fit: cover;
   display: block;
-  user-select: none;
+  border-radius: 8px 8px 0 0;
 }
 
 .popup-text {
   padding: 16px;
   text-align: center;
+  background: white;
 }
 
 .popup-text h3 {
@@ -203,10 +172,10 @@ style.textContent = `
 
 .popup-close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 24px;
-  height: 24px;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
   background: rgba(0,0,0,0.6);
   color: white;
   border-radius: 50%;
@@ -220,7 +189,7 @@ style.textContent = `
 }
 
 .popup-close:hover {
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.9);
   transform: scale(1.1);
 }
 
@@ -236,15 +205,15 @@ style.textContent = `
     bottom: 15px;
   }
   
-  .popup-content, .popup-content.video-content {
+  .popup-content, .video-content {
     width: 90vw;
   }
   
-  .inner {
+  .video-container {
     height: 180px;
   }
   
-  .video-content .inner {
+  .video-content .video-container {
     height: 200px;
   }
 }
