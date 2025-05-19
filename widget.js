@@ -36,6 +36,13 @@ function convertToEmbedUrl(url) {
   const fileName = match[2];
   return `https://milwaukeetool.widen.net/view/video/${videoId}/${fileName}`;
 }
+function isMilwaukeeMp4(url) {
+  return url.includes("widen.net/s/") && url.endsWith(".mp4");
+}
+
+function convertToEmbedUrl(url) {
+  return url.replace("/s/", "/view/video/").replace("?t.download=true", "");
+}
 
 function showPopup(campaign, index) {
   const popupId = `promo-popup-${index}`;
@@ -92,13 +99,6 @@ function showPopup(campaign, index) {
       removePopup(popupId);
     }
   };
-function isMilwaukeeMp4(url) {
-  return url.includes("widen.net/s/") && url.endsWith(".mp4");
-}
-
-function convertToEmbedUrl(url) {
-  return url.replace("/s/", "/view/video/").replace("?t.download=true", "");
-}
 
   document.body.appendChild(popup);
   setTimeout(() => removePopup(popupId), 15000);
