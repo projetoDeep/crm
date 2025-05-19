@@ -15,7 +15,7 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
         showPopup(data, 0);
       }
     } catch (e) {
-      console.error("Resposta invalida:", text);
+      console.error("Resposta inválida:", text);
     }
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
@@ -30,7 +30,7 @@ function showPopup(campaign, index) {
 
   popup.innerHTML = `
     <div class="popup-content">
-      ${campaign.image ? `<img src="${campaign.image}" alt="Promocao" class="popup-img" />` : ''}
+      ${campaign.image ? `<img src="${campaign.image}" alt="Promoção" class="popup-img" />` : ''}
       <div class="popup-text">
         <h3>${campaign.title}</h3>
         <p>${campaign.message}</p>
@@ -50,7 +50,8 @@ function showPopup(campaign, index) {
     } else if (campaign.url) {
       const url = fixUrl(campaign.url);
       trackEvent(campaign.url, "click");
-      window.open(url, '_blank');
+      // Abre na MESMA aba (como pediu)
+      window.location.href = url;
       removePopup(popupId);
     }
   };
@@ -87,7 +88,7 @@ function trackEvent(website, eventType) {
     body: JSON.stringify({
       website,
       event: eventType,
-      website: location.hostname
+      origin: location.hostname // ALTEREI PARA "origin" evitar sobrescrever
     })
   }).catch(err => console.error("Erro ao registrar evento:", err));
 }
@@ -98,7 +99,7 @@ style.textContent = `
   position: fixed;
   top: 20px;
   right: 20px;
-  left: auto; /* FORÇA popup no canto direito */
+  left: auto; /* Força popup no canto direito */
   width: 320px;
   background: #fff;
   border-radius: 12px;
@@ -186,19 +187,4 @@ style.textContent = `
   }
 }
 `;
-document.head.appendChild(style);
-
-// Trecho do JS que abre o link na MESMA aba
-popup.onclick = (e) => {
-  if (e.target.classList.contains('popup-close')) {
-    // Fechar popup
-    trackEvent(campaign.url, "close");
-    removePopup(popupId);
-  } else if (campaign.url) {
-    const url = fixUrl(campaign.url);
-    trackEvent(campaign.url, "click");
-    window.location.href = url;  // Abre na mesma aba
-    removePopup(popupId);
-  }
-};
 document.head.appendChild(style);
