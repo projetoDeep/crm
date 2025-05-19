@@ -32,7 +32,6 @@ function isMilwaukeeMp4(url) {
 function convertToEmbedUrl(url) {
   if (!url) return '';
   const cleanUrl = url.split('?')[0];
-  // Converte URL de share para URL de visualização
   return cleanUrl.replace("/s/", "/view/video/");
 }
 
@@ -59,33 +58,19 @@ function showPopup(campaign, index) {
     if (isMilwaukeeMp4(src)) {
       const embed = convertToEmbedUrl(src);
       media = `
-        <div class="popup-iframe-container">
-          <iframe 
-            src="${embed}" 
-            frameborder="0" 
-            allow="autoplay; fullscreen" 
-            allowfullscreen 
-            class="popup-iframe"
-            loading="lazy"
-            title="Vídeo da campanha ${campaign.title || ''}"
-          ></iframe>
-          <div class="iframe-fallback">
-            <video controls class="fallback-video">
-              <source src="${src}" type="video/mp4">
-              Seu navegador não suporta vídeo.
-            </video>
-          </div>
+        <div class="popup-iframe-wrapper">
+          <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
         </div>`;
     } else if (isVideo(src)) {
       media = `
-        <div class="popup-video-container">
+        <div class="popup-video-wrapper">
           <video autoplay muted playsinline controls class="popup-video">
             <source src="${src}" type="${getVideoType(src)}">
             Seu navegador não suporta vídeo.
           </video>
         </div>`;
     } else {
-      media = `<img src="${src}" alt="${campaign.title || 'Promoção'}" class="popup-img" onerror="this.style.display='none'"/>`;
+      media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
     }
   }
 
@@ -180,7 +165,7 @@ style.textContent = `
   flex-direction: column;
 }
 
-.popup-img, .popup-video-container, .popup-iframe-container {
+.popup-img, .popup-video-wrapper, .popup-iframe-wrapper {
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
@@ -192,7 +177,7 @@ style.textContent = `
   object-fit: cover;
 }
 
-.popup-video-container {
+.popup-video-wrapper {
   background: #000;
 }
 
@@ -202,41 +187,20 @@ style.textContent = `
   display: block;
 }
 
-.popup-iframe-container {
+.popup-iframe-wrapper {
   position: relative;
   padding-bottom: 56.25%;
   height: 0;
   background: #000;
 }
 
-.popup-iframe {
+.popup-iframe-wrapper iframe {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   border: none;
-}
-
-.iframe-fallback {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-}
-
-.popup-iframe[src=""] + .iframe-fallback,
-.popup-iframe.error + .iframe-fallback {
-  display: block;
-}
-
-.fallback-video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .popup-text {
@@ -290,30 +254,3 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
-
-// Detecção de erros no iframe
-document.addEventListener('DOMContentLoaded', function() {
-  const checkIframeLoad = function(e) {
-    if (e.target.classList.contains('popup-iframe')) {
-      try {
-        // Verifica se o iframe carregou corretamente
-        setTimeout(() => {
-          if (!e.target.contentDocument || 
-              e.target.contentDocument.readyState !== 'complete' || 
-              e.target.contentDocument.body.innerHTML.includes('Preview not available')) {
-            e.target.classList.add('error');
-          }
-        }, 2000);
-      } catch (err) {
-        e.target.classList.add('error');
-      }
-    }
-  };
-
-  document.body.addEventListener('load', checkIframeLoad, true);
-  document.body.addEventListener('error', function(e) {
-    if (e.target.classList.contains('popup-iframe')) {
-      e.target.classList.add('error');
-    }
-  }, true);
-});
