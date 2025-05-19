@@ -26,18 +26,19 @@ function isVideo(url) {
 }
 
 function isMilwaukeeMp4(url) {
-  return url && /milwaukeetool\.widen\.net\/s\/[^/]+\/[^/]+\.mp4?/i.test(url);
+  return url && /milwaukeetool\.widen\.net\/s\/[^/]+\/[^/]+/i.test(url);
 }
 
 function convertToEmbedUrl(url) {
   if (!url) return '';
   const cleanUrl = url.split('?')[0];
-  const match = cleanUrl.match(/widen\.net\/s\/([^/]+)\/([^/]+)\.mp4?/i);
-  if (!match) return url; // fallback para manter comportamento padrão
+  const match = cleanUrl.match(/widen\.net\/s\/([^/]+)\/([^/?#]+)/i);
+  if (!match) return url;
   const id = match[1];
   const slug = match[2];
   return `https://milwaukeetool.widen.net/view/video/${id}/${slug}.mp4`;
 }
+
 
 function getVideoType(url) {
   if (!url) return 'video/mp4';
