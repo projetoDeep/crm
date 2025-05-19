@@ -21,20 +21,7 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
 function isVideo(url) {
-  return /\.(mp4|webm|ogg|mov|mkv)$/i.test(url);
-}
-
-function isYouTube(url) {
-  return /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)/.test(url);
-}
-
-function getYouTubeId(url) {
-  let id = null;
-  const match1 = url.match(/[?&]v=([^&]+)/);
-  const match2 = url.match(/youtu\.be\/([^?&]+)/);
-  if (match1) id = match1[1];
-  else if (match2) id = match2[1];
-  return id;
+  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
 }
 
 function showPopup(campaign, index) {
@@ -47,20 +34,13 @@ function showPopup(campaign, index) {
 
   let mediaHtml = '';
   if (campaign.image) {
-    if (isYouTube(campaign.image)) {
-      const ytId = getYouTubeId(campaign.image);
-      if (ytId) {
-        mediaHtml = `
-          <iframe 
-            class="popup-video"
-            src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}"
-            frameborder="0" 
-            allow="autoplay; encrypted-media" 
-            allowfullscreen 
-            ></iframe>`;
-      }
-    } else if (isVideo(campaign.image)) {
-      mediaHtml = `<video class="popup-video" src="${campaign.image}" autoplay muted loop playsinline></video>`;
+    if (isVideo(campaign.image)) {
+      mediaHtml = `
+        <video class="popup-video" autoplay muted loop playsinline controls>
+          <source src="${campaign.image}" type="video/mp4" />
+          Seu navegador não suporta vídeo HTML5.
+        </video>
+      `;
     } else {
       mediaHtml = `<img src="${campaign.image}" alt="Promoção" class="popup-img" />`;
     }
@@ -156,15 +136,19 @@ style.textContent = `
   position: relative;
   gap: 12px;
 }
-.popup-img, .popup-video {
+.popup-img {
   width: 60px;
   height: 60px;
-  border-radius: 8px;
   object-fit: cover;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 .popup-video {
-  background: black;
+  width: 120px;
+  height: 90px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  object-fit: cover;
 }
 .popup-text {
   flex: 1;
@@ -203,9 +187,13 @@ style.textContent = `
     width: auto;
     padding: 12px;
   }
-  .popup-img, .popup-video {
+  .popup-img {
     width: 50px;
     height: 50px;
+  }
+  .popup-video {
+    width: 100px;
+    height: 75px;
   }
   .popup-text h3 {
     font-size: 15px;
