@@ -32,23 +32,29 @@ function showPopup(campaign, index) {
   const popup = document.createElement('div');
   popup.id = popupId;
 
-  let mediaHtml = '';
-  if (campaign.image) {
-    if (isVideo(campaign.image)) {
-      mediaHtml = `
-        <video class="popup-video" autoplay muted loop playsinline controls>
-          <source src="${campaign.image}" type="video/mp4" />
-          Seu navegador não suporta vídeo HTML5.
-        </video>
-      `;
+  let media = '';
+  const src = campaign.image;
+
+  if (src) {
+    if (src.endsWith('.mp4')) {
+      media = `
+        <video autoplay muted playsinline controls class="popup-video">
+          <source src="${src}" type="video/mp4">
+          Seu navegador não suporta vídeo.
+        </video>`;
+    } else if (src.includes('widen.net/view/video/')) {
+      media = `
+        <div class="popup-iframe-wrapper">
+          <iframe src="${src}" frameborder="0" allowfullscreen class="popup-iframe"></iframe>
+        </div>`;
     } else {
-      mediaHtml = `<img src="${campaign.image}" alt="Promoção" class="popup-img" />`;
+      media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
     }
   }
 
   popup.innerHTML = `
     <div class="popup-content">
-      ${mediaHtml}
+      ${media}
       <div class="popup-text">
         <h3>${campaign.title}</h3>
         <div class="popup-body">${campaign.message}</div>
@@ -74,18 +80,9 @@ function showPopup(campaign, index) {
   };
 
   document.body.appendChild(popup);
-
-  // Força o play do vídeo logo após anexar o popup:
-  const video = popup.querySelector('video');
-  if (video) {
-    video.play().catch(err => {
-      // Caso autoplay seja bloqueado, silencie o erro e deixa pausado
-      console.log('Autoplay bloqueado:', err);
-    });
-  }
-
   setTimeout(() => removePopup(popupId), 15000);
 }
+
 
 
 function removePopup(id) {
@@ -213,6 +210,30 @@ style.textContent = `
   .popup-body {
     font-size: 13px;
   }
+}
+.popup-video {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  max-height: 200px;
+  background: black;
+}
+
+.popup-iframe-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  height: 0;
+  margin-bottom: 10px;
+}
+
+.popup-iframe-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
 }
 `;
 document.head.appendChild(style);
