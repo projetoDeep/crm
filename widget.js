@@ -21,8 +21,28 @@ function isVideo(url) {
   return url && /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
 }
 
+function isMilwaukeeMp4(url) {
+  return url && /widen\.net\/s\/.*\.mp4/i.test(url);
+}
+
+function convertToEmbedUrl(url) {
+  if (!url) return '';
+  const cleanUrl = url.split('?')[0];
+  return cleanUrl.replace("/s/", "/view/video/");
+}
+
+function isVimeo(url) {
+  return url && /vimeo\.com\/(\d+)/i.test(url);
+}
+
+function getVimeoEmbedUrl(url) {
+  const match = url.match(/vimeo\.com\/(\d+)/i);
+  return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&loop=1&muted=1&autopause=0&background=1` : null;
+}
+
 function getVideoType(url) {
   if (!url) return 'video/mp4';
+  if (url.includes('.mp4')) return 'video/mp4';
   if (url.includes('.webm')) return 'video/webm';
   if (url.includes('.ogg')) return 'video/ogg';
   return 'video/mp4';
@@ -37,28 +57,50 @@ function showPopup(campaign, index) {
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-  const src = campaign.image;
-  const isVideoContent = isVideo(src);
-
   let media = '';
-  if (isVideoContent) {
-    media = `
-      <div class="media-container video-wrapper">
-        <video 
-          autoplay 
-          muted 
-          loop 
-          playsinline 
-          poster="${campaign.poster || ''}"
-          class="popup-media">
-          <source src="${src}" type="${getVideoType(src)}">
-        </video>
-      </div>`;
-  } else if (src) {
-    media = `
-      <div class="media-container image-wrapper">
-        <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
-      </div>`;
+  const src = campaign.image;
+  const isVideoContent = isVideo(src) || isVimeo(src) || isMilwaukeeMp4(src);
+
+  if (src) {
+    if (isMilwaukeeMp4(src)) {
+      media = `
+        <div class="media-container video-wrapper">
+          <video 
+            autoplay 
+            muted 
+            loop 
+            playsinline 
+            class="popup-media"
+            poster="${campaign.poster || ''}">
+            <source src="${src}" type="${getVideoType(src)}">
+          </video>
+        </div>`;
+
+    } else if (isVimeo(src)) {
+      const embedUrl = getVimeoEmbedUrl(src);
+      if (embedUrl) {
+        media = `
+          <div class="media-container vimeo-wrapper">
+            <iframe src="${embedUrl}" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowfullscreen 
+                    class="popup-video"></iframe>
+          </div>`;
+      }
+    } else if (isVideo(src)) {
+      media = `
+        <div class="media-container video-wrapper">
+          <video autoplay muted loop playsinline class="popup-media">
+            <source src="${src}" type="${getVideoType(src)}">
+          </video>
+        </div>`;
+    } else {
+      media = `
+        <div class="media-container image-wrapper">
+          <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
+        </div>`;
+    }
   }
 
   popup.innerHTML = `
@@ -111,8 +153,8 @@ style.textContent = `
   z-index: 10000;
   transition: all 0.3s ease;
   opacity: 1;
-  width: 320px;
-  height: 180px;
+  width: 270px;
+  height: 480px;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -139,11 +181,22 @@ style.textContent = `
 }
 
 .popup-text {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   color: white;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 12px;
+  font-size: 14px;
   z-index: 2;
+}
+
+.popup-text h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.popup-body {
+  margin: 0;
+  font-size: 13px;
 }
 
 .popup-close {
@@ -164,12 +217,6 @@ style.textContent = `
   cursor: pointer;
 }
 
-
-.popup-close:hover {
-  background: #fff;
-  transform: scale(1.1);
-}
-
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -180,11 +227,8 @@ style.textContent = `
     left: 50%;
     transform: translateX(-50%);
     bottom: 15px;
-  }
-
-  .popup-content, .popup-content.video-content {
     width: 90vw;
+    height: calc(90vw * 16 / 9);
   }
-}
-`;
+}`;
 document.head.appendChild(style);
