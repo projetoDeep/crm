@@ -55,13 +55,14 @@ function showPopup(campaign, index) {
   let media = '';
   const src = campaign.image;
 
-  if (src) {
-  if (isMilwaukeeMp4(src)) {
-    const embed = convertToEmbedUrl(src);
-    media = `
-      <div class="popup-iframe-wrapper">
-        <iframe src="${embed}" frameborder="0" allowfullscreen class="popup-iframe"></iframe>
-      </div>`;
+if (isMilwaukeeMp4(src)) {
+  media = `
+    <video autoplay muted playsinline controls class="popup-video">
+      <source src="${src}" type="video/mp4" />
+      Seu navegador não suporta vídeo.
+    </video>`;
+}
+
   } else if (isVideo(src)) {
     media = `
       <video autoplay muted playsinline controls class="popup-video">
