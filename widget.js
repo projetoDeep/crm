@@ -20,28 +20,33 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-// Verificadores
+// Funções de verificação de mídia
 function isVideo(url) {
   return url && /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
 }
 
 function isMilwaukeeMp4(url) {
-  return url && /milwaukeetool\.widen\.net\/s\/[^/]+\/[^/]+/i.test(url);
+  return url && /widen\.net\/s\/.*\.mp4$/i.test(url);
 }
 
 function convertToEmbedUrl(url) {
-  if (!url) return '';
-  const cleanUrl = url.split('?')[0];
-  const match = cleanUrl.match(/widen\.net\/s\/([^/]+)\/([^/?#]+)/i);
-  if (!match) return url;
-  const id = match[1];
-  const slug = match[2];
-  return `https://milwaukeetool.widen.net/view/video/${id}/${slug}.mp4`;
+  // Converte URLs do tipo:
+  // https://milwaukeetool.widen.net/s/xxxxx/arquivo.mp4
+  // para:
+  // https://milwaukeetool.widen.net/view/video/xxxxx
+  try {
+    const parts = url.split('/');
+    const idIndex = parts.findIndex(p => p === 's') + 1;
+    const id = parts[idIndex];
+    return `https://milwaukeetool.widen.net/view/video/${id}`;
+  } catch (e) {
+    return url; // fallback caso algo dê errado
+  }
 }
-
 
 function getVideoType(url) {
   if (!url) return 'video/mp4';
+  if (url.includes('.mp4')) return 'video/mp4';
   if (url.includes('.webm')) return 'video/webm';
   if (url.includes('.ogg')) return 'video/ogg';
   return 'video/mp4';
@@ -140,7 +145,7 @@ function trackEvent(website, eventType) {
   }).catch(err => console.error("Erro ao registrar evento:", err));
 }
 
-// CSS
+// Estilos CSS
 const style = document.createElement('style');
 style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, 
@@ -251,7 +256,7 @@ style.textContent = `
     width: auto;
     padding: 12px;
   }
-
+  
   .popup-video, .popup-img {
     max-height: 150px;
   }
