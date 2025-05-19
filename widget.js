@@ -1,3 +1,4 @@
+
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .then(res => {
     if (res.status === 204) return null;
@@ -24,6 +25,18 @@ function isVideo(url) {
   return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
 }
 
+function isMilwaukeeMp4(url) {
+  return /widen\.net\/s\/.*\.mp4/i.test(url);
+}
+
+function convertToEmbedUrl(url) {
+  const match = url.match(/widen\.net\/s\/([^/]+)\/([^?#]+)/i);
+  if (!match) return null;
+  const videoId = match[1];
+  const fileName = match[2];
+  return `https://milwaukeetool.widen.net/view/video/${videoId}/${fileName}`;
+}
+
 function showPopup(campaign, index) {
   const popupId = `promo-popup-${index}`;
   const oldPopup = document.getElementById(popupId);
@@ -36,16 +49,17 @@ function showPopup(campaign, index) {
   const src = campaign.image;
 
   if (src) {
-    if (src.endsWith('.mp4')) {
+    if (isVideo(src)) {
       media = `
         <video autoplay muted playsinline controls class="popup-video">
           <source src="${src}" type="video/mp4">
           Seu navegador não suporta vídeo.
         </video>`;
-    } else if (src.includes('widen.net/view/video/')) {
+    } else if (isMilwaukeeMp4(src)) {
+      const embed = convertToEmbedUrl(src);
       media = `
         <div class="popup-iframe-wrapper">
-          <iframe src="${src}" frameborder="0" allowfullscreen class="popup-iframe"></iframe>
+          <iframe src="${embed}" frameborder="0" allowfullscreen class="popup-iframe"></iframe>
         </div>`;
     } else {
       media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
@@ -83,8 +97,6 @@ function showPopup(campaign, index) {
   setTimeout(() => removePopup(popupId), 15000);
 }
 
-
-
 function removePopup(id) {
   const popup = document.getElementById(id);
   if (popup) {
@@ -97,9 +109,7 @@ function removePopup(id) {
 
 function fixUrl(url) {
   if (!url) return '';
-  if (/^https?:\/\//i.test(url)) {
-    return url;
-  }
+  if (/^https?:\/\//i.test(url)) return url;
   return 'http://' + url;
 }
 
@@ -123,7 +133,6 @@ style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
   position: fixed;
   top: 75vh;
-  right: auto;
   left: 8%;
   width: 320px;
   background: #fff;
@@ -143,21 +152,32 @@ style.textContent = `
   align-items: flex-start;
   position: relative;
   gap: 12px;
+  flex-direction: column;
+}
+.popup-img, .popup-video, .popup-iframe-wrapper {
+  width: 100%;
+  border-radius: 8px;
 }
 .popup-img {
-  width: 60px;
-  height: 60px;
   object-fit: cover;
-  border-radius: 8px;
-  flex-shrink: 0;
 }
 .popup-video {
-  width: 500px;
-  height: 150px;
+  max-height: 240px;
+  background: black;
+}
+.popup-iframe-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  margin-bottom: 10px;
+}
+.popup-iframe-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   border-radius: 8px;
-  flex-shrink: 0;
-  object-fit: cover;
-  background: black
 }
 .popup-text {
   flex: 1;
@@ -196,44 +216,10 @@ style.textContent = `
     width: auto;
     padding: 12px;
   }
-  .popup-img {
-    width: 50px;
-    height: 50px;
-  }
   .popup-video {
-    width: 100px;
-    height: 75px;
+    max-height: 200px;
   }
-  .popup-text h3 {
-    font-size: 15px;
-  }
-  .popup-body {
-    font-size: 13px;
-  }
-}
-.popup-video {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  max-height: 200px;
-  background: black;
-}
-
-.popup-iframe-wrapper {
-  position: relative;
-  width: 100%;
-  padding-bottom: 56.25%;
-  height: 0;
-  margin-bottom: 10px;
-}
-
-.popup-iframe-wrapper iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
 }
 `;
 document.head.appendChild(style);
+
