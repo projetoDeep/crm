@@ -109,6 +109,7 @@ style.textContent = `
 .popup-close-left {
   position: absolute;
   left: -10px;
+  top: 10px;
   background: rgba(255,255,255,0.9);
   color: #000;
   border-radius: 50%;
