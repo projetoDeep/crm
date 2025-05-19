@@ -27,12 +27,12 @@ function showPopup(campaign, index) {
   popup.className = 'promo-popup';
 
   const thumbVideo = `
-    <div class="media-container" id="video-thumb-container-${index}">
-      <video autoplay muted loop playsinline class="popup-media" id="thumb-video-${index}">
-        <source src="${campaign.image}" type="video/mp4">
-      </video>
-      <span class="popup-close" onclick="removePopup('${popupId}')">×</span>
-    </div>`;
+<div class="video-thumbnail-button" onclick="openFullscreenVideo()">
+  <video autoplay muted loop playsinline>
+    <source src="https://lxbooogilngujgqrtspc.supabase.co/storage/v1/object/public/video/m18mp4-thumb.mp4" type="video/mp4">
+  </video>
+</div>
+
 
   popup.innerHTML = `
     <div class="popup-content video-content">${thumbVideo}</div>
@@ -174,5 +174,28 @@ style.textContent = `
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.video-thumbnail-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #00793f;
+  box-shadow: 0 0 8px #00793f;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.video-thumbnail-button:hover {
+  transform: scale(1.05);
+}
+
+.video-thumbnail-button video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 `;
 document.head.appendChild(style);
