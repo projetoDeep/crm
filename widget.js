@@ -62,22 +62,24 @@ function showPopup(campaign, index) {
 
   const popup = document.createElement('div');
   popup.id = popupId;
+  popup.className = 'promo-popup';
 
   let media = '';
   const src = campaign.image;
+  const isVideoContent = isVideo(src) || isVimeo(src) || isMilwaukeeMp4(src);
 
   if (src) {
     if (isMilwaukeeMp4(src)) {
       const embed = convertToEmbedUrl(src);
       media = `
-        <div class="popup-iframe-wrapper">
+        <div class="popup-media-wrapper video-container">
           <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
         </div>`;
     } else if (isVimeo(src)) {
       const embedUrl = getVimeoEmbedUrl(src);
       if (embedUrl) {
         media = `
-          <div class="popup-iframe-wrapper vimeo-container">
+          <div class="popup-media-wrapper vimeo-container">
             <iframe src="${embedUrl}" 
                     frameborder="0" 
                     allow="autoplay; fullscreen; picture-in-picture" 
@@ -87,19 +89,22 @@ function showPopup(campaign, index) {
       }
     } else if (isVideo(src)) {
       media = `
-        <div class="popup-video-wrapper">
+        <div class="popup-media-wrapper video-container">
           <video autoplay muted playsinline loop class="popup-video">
             <source src="${src}" type="${getVideoType(src)}">
             Seu navegador não suporta vídeo.
           </video>
         </div>`;
     } else {
-      media = `<img src="${src}" alt="Promoção" class="popup-img" onerror="this.style.display='none'"/>`;
+      media = `
+        <div class="popup-media-wrapper image-container">
+          <img src="${src}" alt="Promoção" class="popup-img" onerror="this.style.display='none'"/>
+        </div>`;
     }
   }
 
   popup.innerHTML = `
-    <div class="popup-content">
+    <div class="popup-content ${isVideoContent ? 'video-content' : ''}">
       ${media}
       <div class="popup-text">
         <h3>${campaign.title || ''}</h3>
@@ -109,24 +114,7 @@ function showPopup(campaign, index) {
     </div>
   `;
 
-  popup.style.cursor = 'pointer';
   document.body.appendChild(popup);
-
-  // Disparar o play manualmente se for Vimeo
-  if (isVimeo(src)) {
-    const iframe = popup.querySelector('.vimeo-iframe');
-    if (iframe) {
-      // Espera o iframe carregar antes de tentar comunicar
-      iframe.onload = function() {
-        try {
-          const player = new Vimeo.Player(iframe);
-          player.play().catch(e => console.log('Vimeo autoplay blocked:', e));
-        } catch (e) {
-          console.error('Vimeo Player API error:', e);
-        }
-      };
-    }
-  }
 
   // Configurar eventos de clique
   popup.onclick = (e) => {
@@ -156,61 +144,86 @@ function fixUrl(url) {
   return 'https://' + url;
 }
 
-// Carrega a API do Vimeo dinamicamente
-function loadVimeoAPI() {
-  const script = document.createElement('script');
-  script.src = 'https://player.vimeo.com/api/player.js';
-  document.body.appendChild(script);
-}
-
-// Inicializa quando o DOM estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
-  loadVimeoAPI();
-});
-
-// Estilos CSS atualizados
+// Estilos CSS atualizados para popup de vídeo maior
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
   position: fixed;
   bottom: 20px;
   left: 20px;
-  width: 320px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   padding: 15px;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   z-index: 10000;
-  transition: opacity 0.3s;
+  transition: all 0.3s ease;
   opacity: 1;
+  overflow: hidden;
+}
+
+/* Popup padrão (para imagens) */
+.promo-popup:not(.video-popup) {
+  width: 320px;
+  max-width: 90vw;
+}
+
+/* Popup para vídeos */
+.promo-popup.video-popup,
+.promo-popup .video-content {
+  width: 500px;
+  max-width: 90vw;
 }
 
 .popup-content {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.popup-img, .popup-video-wrapper, .popup-iframe-wrapper {
+.popup-media-wrapper {
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 10px;
+  background: #000;
+}
+
+/* Container para vídeos */
+.video-container {
+  aspect-ratio: 16/9;
+}
+
+/* Container para imagens */
+.image-container {
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+.popup-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .popup-video {
   width: 100%;
-  max-height: 180px;
+  height: 100%;
   display: block;
-  background: black;
+  object-fit: cover;
 }
 
-.popup-iframe-wrapper {
+.popup-iframe-wrapper, .vimeo-container {
   position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
+  width: 100%;
+  height: 100%;
 }
 
-.popup-iframe-wrapper iframe {
+.popup-iframe {
   position: absolute;
   top: 0;
   left: 0;
@@ -219,26 +232,97 @@ style.textContent = `
   border: none;
 }
 
-.vimeo-container {
-  background: transparent;
+.popup-text {
+  padding: 0 8px;
+}
+
+.popup-text h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.popup-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
 }
 
 .popup-close {
   position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: 18px;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   z-index: 10;
+  transition: all 0.2s ease;
 }
 
-@media (max-width: 480px) {
+.popup-close:hover {
+  background: rgba(0,0,0,0.8);
+  transform: scale(1.1);
+}
+
+/* Efeito de hover no popup */
+.promo-popup:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
   .promo-popup {
-    left: 10px;
-    right: 10px;
-    width: auto;
-    bottom: 10px;
+    left: 50% !important;
+    transform: translateX(-50%);
+    bottom: 15px;
   }
+  
+  .promo-popup.video-popup,
+  .promo-popup .video-content {
+    width: 90vw;
+  }
+  
+  .popup-text h3 {
+    font-size: 16px;
+  }
+  
+  .popup-body {
+    font-size: 13px;
+  }
+}
+
+/* Animação de entrada */
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.promo-popup {
+  animation: popupFadeIn 0.4s ease forwards;
 }
 `;
 document.head.appendChild(style);
+
+// Detecta automaticamente se é um vídeo e aplica a classe video-popup
+function checkVideoContent() {
+  document.querySelectorAll('.promo-popup').forEach(popup => {
+    const hasVideo = popup.querySelector('video, .video-container, .vimeo-container');
+    if (hasVideo) {
+      popup.classList.add('video-popup');
+    }
+  });
+}
+
+// Verifica periodicamente o conteúdo do popup
+setInterval(checkVideoContent, 100);
