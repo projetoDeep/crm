@@ -20,18 +20,39 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-// Funções auxiliares
+// Funções de verificação de mídia
 function isVideo(url) {
-  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+  return url && /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+}
+
+function isMilwaukeeMp4(url) {
+  return url && /widen\.net\/s\/.*\.mp4/i.test(url);
+}
+
+function convertToEmbedUrl(url) {
+  if (!url) return '';
+  const cleanUrl = url.split('?')[0];
+  return cleanUrl.replace("/s/", "/view/video/");
 }
 
 function isVimeo(url) {
-  return /vimeo\.com\/(\d+)/i.test(url);
+  return url && /vimeo\.com\/(\d+)/i.test(url);
 }
 
-function getVimeoThumbnail(url) {
-  const id = url.match(/vimeo\.com\/(\d+)/i)[1];
-  return `https://vumbnail.com/${id}_large.jpg`;
+function getVimeoEmbedUrl(url) {
+  const match = url.match(/vimeo\.com\/(\d+)/i);
+  if (!match) return null;
+  
+  const videoId = match[1];
+  return `https://player.vimeo.com/video/${videoId}?autoplay=1&loop=0&muted=1&autopause=0&background=0`;
+}
+
+function getVideoType(url) {
+  if (!url) return 'video/mp4';
+  if (url.includes('.mp4')) return 'video/mp4';
+  if (url.includes('.webm')) return 'video/webm';
+  if (url.includes('.ogg')) return 'video/ogg';
+  return 'video/mp4';
 }
 
 function showPopup(campaign, index) {
@@ -41,40 +62,39 @@ function showPopup(campaign, index) {
 
   const popup = document.createElement('div');
   popup.id = popupId;
-  popup.className = 'promo-popup';
 
   let media = '';
   const src = campaign.image;
-  const isVimeoVideo = isVimeo(src);
-  const isNativeVideo = isVideo(src);
 
   if (src) {
-    if (isVimeoVideo) {
-      const thumbnail = getVimeoThumbnail(src);
+    if (isMilwaukeeMp4(src)) {
+      const embed = convertToEmbedUrl(src);
       media = `
-        <div class="media-container vimeo-container">
-          <img src="${thumbnail}" class="media-thumbnail" alt="Thumbnail"/>
-          <div class="play-button">▶</div>
-          <iframe data-src="https://player.vimeo.com/video/${src.match(/vimeo\.com\/(\d+)/i)[1]}?autoplay=1&loop=1&muted=1" 
-                  class="vimeo-iframe" 
-                  frameborder="0" 
-                  allow="autoplay; fullscreen" 
-                  allowfullscreen></iframe>
+        <div class="popup-iframe-wrapper">
+          <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
         </div>`;
-    } else if (isNativeVideo) {
+    } else if (isVimeo(src)) {
+      const embedUrl = getVimeoEmbedUrl(src);
+      if (embedUrl) {
+        media = `
+          <div class="popup-iframe-wrapper vimeo-container">
+            <iframe src="${embedUrl}" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowfullscreen 
+                    class="popup-iframe vimeo-iframe"></iframe>
+          </div>`;
+      }
+    } else if (isVideo(src)) {
       media = `
-        <div class="media-container video-container">
-          <img src="https://via.placeholder.com/300x150?text=Thumbnail" class="media-thumbnail" alt="Thumbnail"/>
-          <div class="play-button">▶</div>
-          <video class="native-video" loop muted playsinline>
-            <source src="${src}" type="${src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'}"/>
+        <div class="popup-video-wrapper">
+          <video autoplay muted playsinline loop class="popup-video">
+            <source src="${src}" type="${getVideoType(src)}">
+            Seu navegador não suporta vídeo.
           </video>
         </div>`;
     } else {
-      media = `
-        <div class="media-container image-container">
-          <img src="${src}" class="media-image" alt="Promoção"/>
-        </div>`;
+      media = `<img src="${src}" alt="Promoção" class="popup-img" onerror="this.style.display='none'"/>`;
     }
   }
 
@@ -83,190 +103,142 @@ function showPopup(campaign, index) {
       ${media}
       <div class="popup-text">
         <h3>${campaign.title || ''}</h3>
-        <p>${campaign.message || ''}</p>
+        <div class="popup-body">${campaign.message || ''}</div>
       </div>
-      <div class="popup-close">&times;</div>
+      <span class="popup-close" title="Fechar">×</span>
     </div>
   `;
 
+  popup.style.cursor = 'pointer';
   document.body.appendChild(popup);
 
-  // Controle de vídeo
-  if (isVimeoVideo || isNativeVideo) {
-    const container = popup.querySelector('.media-container');
-    const thumbnail = popup.querySelector('.media-thumbnail');
-    const playBtn = popup.querySelector('.play-button');
-    
-    container.addEventListener('click', function() {
-      if (isVimeoVideo) {
-        const iframe = this.querySelector('.vimeo-iframe');
-        iframe.src = iframe.dataset.src;
-      } else {
-        const video = this.querySelector('.native-video');
-        video.play().catch(e => console.log('Autoplay blocked:', e));
-      }
-      
-      thumbnail.style.opacity = '0';
-      playBtn.style.display = 'none';
-    });
+  // Disparar o play manualmente se for Vimeo
+  if (isVimeo(src)) {
+    const iframe = popup.querySelector('.vimeo-iframe');
+    if (iframe) {
+      // Espera o iframe carregar antes de tentar comunicar
+      iframe.onload = function() {
+        try {
+          const player = new Vimeo.Player(iframe);
+          player.play().catch(e => console.log('Vimeo autoplay blocked:', e));
+        } catch (e) {
+          console.error('Vimeo Player API error:', e);
+        }
+      };
+    }
   }
 
-  // Fechar popup
-  popup.querySelector('.popup-close').addEventListener('click', () => {
-    popup.style.opacity = '0';
-    setTimeout(() => popup.remove(), 300);
-  });
+  // Configurar eventos de clique
+  popup.onclick = (e) => {
+    if (e.target.classList.contains('popup-close')) {
+      removePopup(popupId);
+    } else if (campaign.url) {
+      const url = fixUrl(campaign.url);
+      window.open(url, '_blank');
+      removePopup(popupId);
+    }
+  };
 
   setTimeout(() => removePopup(popupId), 15000);
 }
 
-// Estilos CSS modernos
+function removePopup(id) {
+  const popup = document.getElementById(id);
+  if (popup) {
+    popup.style.opacity = '0';
+    setTimeout(() => popup.remove(), 500);
+  }
+}
+
+function fixUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return 'https://' + url;
+}
+
+// Carrega a API do Vimeo dinamicamente
+function loadVimeoAPI() {
+  const script = document.createElement('script');
+  script.src = 'https://player.vimeo.com/api/player.js';
+  document.body.appendChild(script);
+}
+
+// Inicializa quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+  loadVimeoAPI();
+});
+
+// Estilos CSS atualizados
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
   position: fixed;
-  bottom: 30px;
-  left: 30px;
+  bottom: 20px;
+  left: 20px;
+  width: 320px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  padding: 15px;
+  font-family: Arial, sans-serif;
   z-index: 10000;
-  animation: popupEntrance 0.4s ease-out;
-  max-width: 90vw;
+  transition: opacity 0.3s;
+  opacity: 1;
 }
 
 .popup-content {
-  width: 320px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.media-container {
   position: relative;
+}
+
+.popup-img, .popup-video-wrapper, .popup-iframe-wrapper {
   width: 100%;
-  height: 180px;
-  background: #f5f5f5;
+  border-radius: 8px;
   overflow: hidden;
-  cursor: pointer;
+  margin-bottom: 10px;
 }
 
-.media-thumbnail {
+.popup-video {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.3s ease;
+  max-height: 180px;
+  display: block;
+  background: black;
 }
 
-.play-button {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  background: rgba(255,255,255,0.9);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: #333;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: all 0.2s ease;
+.popup-iframe-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
 }
 
-.media-container:hover .play-button {
-  transform: translate(-50%, -50%) scale(1.1);
-  background: white;
-}
-
-.vimeo-iframe, .native-video {
+.popup-iframe-wrapper iframe {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   border: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
-.vimeo-iframe[src], .native-video.playing {
-  opacity: 1;
-}
-
-.popup-text {
-  padding: 15px;
-  text-align: center;
-}
-
-.popup-text h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.popup-text p {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.4;
+.vimeo-container {
+  background: transparent;
 }
 
 .popup-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 26px;
-  height: 26px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+  top: 5px;
+  right: 8px;
+  font-size: 18px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 2;
-}
-
-.popup-close:hover {
-  background: rgba(0,0,0,0.8);
-  transform: rotate(90deg);
-}
-
-@keyframes popupEntrance {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  z-index: 10;
 }
 
 @media (max-width: 480px) {
   .promo-popup {
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 20px;
-  }
-  
-  .popup-content {
-    width: 90vw;
-  }
-  
-  .media-container {
-    height: 160px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: 10px;
   }
 }
 `;
 document.head.appendChild(style);
-
-function removePopup(id) {
-  const popup = document.getElementById(id);
-  if (popup) popup.remove();
-}
