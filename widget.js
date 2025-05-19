@@ -201,7 +201,7 @@ style.textContent = `
   width: 100%;
   overflow: hidden;
   border-radius: 12px;
-  background-color: black; /* evita fundo branco se vídeo não preencher */
+  background-color: background-color: transparent; /* evita fundo branco se vídeo não preencher */
 }
 
 
