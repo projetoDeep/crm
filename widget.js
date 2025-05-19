@@ -58,87 +58,70 @@ function showPopup(campaign, index) {
     if (isMilwaukeeMp4(src)) {
       const embed = convertToEmbedUrl(src);
       media = `
-        <div class="popup-iframe-wrapper">
-          <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
+        <div class="popup-iframe-container">
+          <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe">
+          </iframe>
+          <div class="iframe-fallback">
+            <video controls class="fallback-video">
+              <source src="${src}" type="video/mp4">
+              Seu navegador não suporta vídeo.
+            </video>
+          </div>
         </div>`;
     } else if (isVideo(src)) {
       media = `
-        <div class="popup-video-wrapper">
+        <div class="popup-video-container">
           <video autoplay muted playsinline controls class="popup-video">
             <source src="${src}" type="${getVideoType(src)}">
             Seu navegador não suporta vídeo.
           </video>
         </div>`;
     } else {
-      media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
+      media = `<img src="${src}" alt="Promoção" class="popup-img" onerror="this.style.display='none'"/>`;
     }
   }
-
-  popup.innerHTML = `
-    <div class="popup-content">
-      ${media}
-      <div class="popup-text">
-        <h3>${campaign.title || ''}</h3>
-        <div class="popup-body">${campaign.message || ''}</div>
-      </div>
-      <span class="popup-close" title="Fechar">×</span>
-    </div>
-  `;
-
-  popup.style.cursor = 'pointer';
-
-  trackEvent(campaign.url, "view");
-
-  popup.onclick = (e) => {
-    if (e.target.classList.contains('popup-close')) {
-      trackEvent(campaign.url, "close");
-      removePopup(popupId);
-    } else if (campaign.url) {
-      const url = fixUrl(campaign.url);
-      trackEvent(campaign.url, "click");
-      window.open(url, '_blank');
-      removePopup(popupId);
-    }
-  };
-
-  document.body.appendChild(popup);
-  setTimeout(() => removePopup(popupId), 15000);
-}
-
-function removePopup(id) {
-  const popup = document.getElementById(id);
-  if (popup) {
-    popup.style.opacity = '0';
-    setTimeout(() => {
-      popup.remove();
-    }, 500);
-  }
-}
-
-function fixUrl(url) {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  return 'https://' + url;
-}
-
-function trackEvent(website, eventType) {
-  if (!website) return;
-  fetch("https://assistaagoraaqui.shop:3000/events", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      website,
-      event: eventType,
-      origin: location.hostname
-    })
-  }).catch(err => console.error("Erro ao registrar evento:", err));
-}
 
 // Estilos CSS
 const style = document.createElement('style');
 style.textContent = `
+  .popup-iframe-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    height: 0;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .popup-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .iframe-fallback {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .popup-iframe[src=""] + .iframe-fallback,
+  .popup-iframe.error + .iframe-fallback {
+    display: block;
+  }
+
+  .fallback-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, 
 #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
   position: fixed;
@@ -254,3 +237,25 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+// Adicione este código para detectar erros no iframe
+document.addEventListener('DOMContentLoaded', function() {
+  document.body.addEventListener('load', function(e) {
+    if (e.target.tagName === 'IFRAME' && e.target.classList.contains('popup-iframe')) {
+      // Verifica se o iframe carregou corretamente
+      try {
+        if (!e.target.contentWindow || e.target.contentWindow.length === 0) {
+          e.target.classList.add('error');
+        }
+      } catch (err) {
+        e.target.classList.add('error');
+      }
+    }
+  }, true);
+
+  // Fallback para iframes com erro
+  document.body.addEventListener('error', function(e) {
+    if (e.target.tagName === 'IFRAME' && e.target.classList.contains('popup-iframe')) {
+      e.target.classList.add('error');
+    }
+  }, true);
+});
