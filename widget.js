@@ -155,11 +155,12 @@ style.textContent = `
   flex-shrink: 0;
 }
 .popup-video {
-  width: 120px;
-  height: 90px;
+  width: 500px;
+  height: 150px;
   border-radius: 8px;
   flex-shrink: 0;
   object-fit: cover;
+  background: black
 }
 .popup-text {
   flex: 1;
