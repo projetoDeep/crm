@@ -26,22 +26,25 @@ function isVideo(url) {
 }
 
 function isMilwaukeeMp4(url) {
-  return url && /widen\.net\/s\/.*\.mp4$/i.test(url);
+  return url && /widen\.net\/s\/.*\.mp4/i.test(url);
 }
 
 function convertToEmbedUrl(url) {
-  // Converte URLs do tipo:
-  // https://milwaukeetool.widen.net/s/xxxxx/arquivo.mp4
-  // para:
-  // https://milwaukeetool.widen.net/view/video/xxxxx
-  try {
-    const parts = url.split('/');
-    const idIndex = parts.findIndex(p => p === 's') + 1;
-    const id = parts[idIndex];
-    return `https://milwaukeetool.widen.net/view/video/${id}`;
-  } catch (e) {
-    return url; // fallback caso algo dê errado
+  if (!url) return '';
+  const cleanUrl = url.split('?')[0];
+  return cleanUrl.replace("/s/", "/view/video/");
+}
+
+function isVimeo(url) {
+  return url && /vimeo\.com\/(\d+)/.test(url);
+}
+
+function getVimeoEmbedUrl(url) {
+  const match = url.match(/vimeo\.com\/(\d+)/);
+  if (match && match[1]) {
+    return `https://player.vimeo.com/video/${match[1]}`;
   }
+  return null;
 }
 
 function getVideoType(url) {
@@ -70,6 +73,14 @@ function showPopup(campaign, index) {
         <div class="popup-iframe-wrapper">
           <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
         </div>`;
+    } else if (isVimeo(src)) {
+      const embed = getVimeoEmbedUrl(src);
+      if (embed) {
+        media = `
+          <div class="popup-iframe-wrapper">
+            <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen class="popup-iframe"></iframe>
+          </div>`;
+      }
     } else if (isVideo(src)) {
       media = `
         <div class="popup-video-wrapper">
@@ -145,7 +156,7 @@ function trackEvent(website, eventType) {
   }).catch(err => console.error("Erro ao registrar evento:", err));
 }
 
-// Estilos CSS
+// Estilos CSS (continua igual)
 const style = document.createElement('style');
 style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, 
