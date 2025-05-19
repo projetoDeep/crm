@@ -20,6 +20,7 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
+// Funções auxiliares
 function isVideo(url) {
   return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
 }
@@ -51,22 +52,28 @@ function showPopup(campaign, index) {
     if (isVimeoVideo) {
       const thumbnail = getVimeoThumbnail(src);
       media = `
-        <div class="media-container">
-          <video class="popup-video" autoplay loop playsinline muted poster="${thumbnail}" style="width: 100%; object-fit: cover; border-radius: inherit;">
-            <source src="https://player.vimeo.com/video/${src.match(/vimeo\.com\/(\d+)/i)[1]}/mp4" type="video/mp4">
-          </video>
+        <div class="media-container vimeo-container">
+          <img src="${thumbnail}" class="media-thumbnail" alt="Thumbnail"/>
+          <div class="play-button">▶</div>
+          <iframe data-src="https://player.vimeo.com/video/${src.match(/vimeo\.com\/(\d+)/i)[1]}?autoplay=1&loop=1&muted=1" 
+                  class="vimeo-iframe" 
+                  frameborder="0" 
+                  allow="autoplay; fullscreen" 
+                  allowfullscreen></iframe>
         </div>`;
     } else if (isNativeVideo) {
       media = `
-        <div class="media-container">
-          <video class="popup-video" autoplay loop playsinline muted style="width: 100%; object-fit: cover; border-radius: inherit;">
-            <source src="${src}" type="${src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'}">
+        <div class="media-container video-container">
+          <img src="https://via.placeholder.com/300x150?text=Thumbnail" class="media-thumbnail" alt="Thumbnail"/>
+          <div class="play-button">▶</div>
+          <video class="native-video" loop muted playsinline>
+            <source src="${src}" type="${src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'}"/>
           </video>
         </div>`;
     } else {
       media = `
-        <div class="media-container">
-          <img src="${src}" class="popup-image" style="width: 100%; object-fit: cover; border-radius: inherit;"/>
+        <div class="media-container image-container">
+          <img src="${src}" class="media-image" alt="Promoção"/>
         </div>`;
     }
   }
@@ -84,6 +91,26 @@ function showPopup(campaign, index) {
 
   document.body.appendChild(popup);
 
+  // Controle de vídeo
+  if (isVimeoVideo || isNativeVideo) {
+    const container = popup.querySelector('.media-container');
+    const thumbnail = popup.querySelector('.media-thumbnail');
+    const playBtn = popup.querySelector('.play-button');
+    
+    container.addEventListener('click', function() {
+      if (isVimeoVideo) {
+        const iframe = this.querySelector('.vimeo-iframe');
+        iframe.src = iframe.dataset.src;
+      } else {
+        const video = this.querySelector('.native-video');
+        video.play().catch(e => console.log('Autoplay blocked:', e));
+      }
+      
+      thumbnail.style.opacity = '0';
+      playBtn.style.display = 'none';
+    });
+  }
+
   // Fechar popup
   popup.querySelector('.popup-close').addEventListener('click', () => {
     popup.style.opacity = '0';
@@ -93,95 +120,143 @@ function showPopup(campaign, index) {
   setTimeout(() => removePopup(popupId), 15000);
 }
 
-// Estilo minimalista inspirado no Widdeo
+// Estilos CSS modernos
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  bottom: 30px;
+  left: 30px;
   z-index: 10000;
-  animation: fadeIn 0.3s ease-out;
+  animation: popupEntrance 0.4s ease-out;
   max-width: 90vw;
 }
 
 .popup-content {
-  width: 300px;
+  width: 320px;
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
 }
 
 .media-container {
+  position: relative;
   width: 100%;
   height: 180px;
   background: #f5f5f5;
+  overflow: hidden;
+  cursor: pointer;
 }
 
-.popup-video, .popup-image {
+.media-thumbnail {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  transition: opacity 0.3s ease;
+}
+
+.play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #333;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.media-container:hover .play-button {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: white;
+}
+
+.vimeo-iframe, .native-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.vimeo-iframe[src], .native-video.playing {
+  opacity: 1;
 }
 
 .popup-text {
-  padding: 12px 16px;
+  padding: 15px;
   text-align: center;
 }
 
 .popup-text h3 {
-  margin: 0 0 6px 0;
-  font-size: 15px;
+  margin: 0 0 8px 0;
+  font-size: 16px;
   font-weight: 600;
   color: #333;
 }
 
 .popup-text p {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
   line-height: 1.4;
 }
 
 .popup-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 24px;
-  height: 24px;
-  background: rgba(0,0,0,0.5);
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  background: rgba(0,0,0,0.6);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
+  z-index: 2;
 }
 
 .popup-close:hover {
-  background: rgba(0,0,0,0.7);
-  transform: scale(1.1);
+  background: rgba(0,0,0,0.8);
+  transform: rotate(90deg);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes popupEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 480px) {
   .promo-popup {
     left: 50%;
     transform: translateX(-50%);
-    bottom: 15px;
+    bottom: 20px;
   }
   
   .popup-content {
-    width: 280px;
+    width: 90vw;
   }
   
   .media-container {
