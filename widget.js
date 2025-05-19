@@ -42,10 +42,11 @@ function isVimeo(url) {
 function getVimeoEmbedUrl(url) {
   const match = url.match(/vimeo\.com\/(\d+)/);
   if (match && match[1]) {
-    return `https://player.vimeo.com/video/${match[1]}`;
+    return `https://player.vimeo.com/video/${match[1]}?autoplay=1&muted=1&playsinline=1`;
   }
   return null;
 }
+
 
 function getVideoType(url) {
   if (!url) return 'video/mp4';
