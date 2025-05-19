@@ -1,3 +1,4 @@
+<script>
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
@@ -26,40 +27,34 @@ function showPopup(campaign, index) {
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-  const thumbVideo = `
-<div class="video-thumbnail-button" onclick="openFullscreenVideo()">
-  <video autoplay muted loop playsinline>
-    <source src="https://lxbooogilngujgqrtspc.supabase.co/storage/v1/object/public/video/m18mp4-thumb.mp4" type="video/mp4">
-  </video>
-</div>
-
-
+  // Adiciona thumb redonda
   popup.innerHTML = `
-    <div class="popup-content video-content">${thumbVideo}</div>
+    <div class="popup-content">
+      <div class="video-thumbnail-button" onclick="openFullscreenVideo('${campaign.full || campaign.video}')">
+        <video autoplay muted loop playsinline>
+          <source src="https://lxbooogilngujgqrtspc.supabase.co/storage/v1/object/public/video/m18mp4-thumb.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
   `;
 
   document.body.appendChild(popup);
-
-  // Ao clicar no vídeo, abrir modal com o vídeo completo
-  const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
-  thumbContainer.onclick = (e) => {
-    if (e.target.classList.contains('popup-close')) return;
-
-    const overlay = document.createElement('div');
-    overlay.className = 'video-overlay';
-
-    overlay.innerHTML = `
-      <div class="video-full">
-        <video autoplay muted loop playsinline class="popup-video-full">
-          <source src="${campaign.full || campaign.image}" type="video/mp4">
-        </video>
-        <span class="popup-close-full" onclick="this.parentElement.parentElement.remove()">×</span>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-  };
-
   setTimeout(() => removePopup(popupId), 15000); // Tempo de exibição do popup
+}
+
+function openFullscreenVideo(videoUrl) {
+  const overlay = document.createElement('div');
+  overlay.className = 'video-overlay';
+
+  overlay.innerHTML = `
+    <div class="video-full">
+      <video autoplay muted loop playsinline class="popup-video-full">
+        <source src="${videoUrl}" type="video/mp4">
+      </video>
+      <span class="popup-close-full" onclick="this.parentElement.parentElement.remove()">×</span>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 }
 
 function removePopup(id) {
@@ -90,34 +85,26 @@ style.textContent = `
   overflow: hidden;
 }
 
-.media-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 9 / 16;
-  background: black;
-  border-radius: 16px;
+.video-thumbnail-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
   overflow: hidden;
+  border: 4px solid #00793f;
+  box-shadow: 0 0 8px #00793f;
   cursor: pointer;
-  border: 6px solid #00793f;
-  box-shadow: 0 0 8px #00793f, 0 0 12px #00793f88;
-  animation: neonPulse 2s infinite alternate;
+  transition: transform 0.3s ease;
 }
 
-@keyframes neonPulse {
-  from {
-    box-shadow: 0 0 8px #00793f, 0 0 12px #00793f88;
-  }
-  to {
-    box-shadow: 0 0 16px #00793f, 0 0 24px #00793faa;
-  }
+.video-thumbnail-button:hover {
+  transform: scale(1.05);
 }
 
-
-.popup-media {
+.video-thumbnail-button video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
+  display: block;
 }
 
 .video-overlay {
@@ -147,7 +134,7 @@ style.textContent = `
   border-radius: inherit;
 }
 
-.popup-close, .popup-close-full {
+.popup-close-full {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -165,7 +152,7 @@ style.textContent = `
   z-index: 10;
 }
 
-.popup-close:hover, .popup-close-full:hover {
+.popup-close-full:hover {
   background: #fff;
   transform: scale(1.1);
 }
@@ -174,28 +161,6 @@ style.textContent = `
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.video-thumbnail-button {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 4px solid #00793f;
-  box-shadow: 0 0 8px #00793f;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.video-thumbnail-button:hover {
-  transform: scale(1.05);
-}
-
-.video-thumbnail-button video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 `;
 document.head.appendChild(style);
+</script>
