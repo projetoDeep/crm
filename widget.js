@@ -172,19 +172,24 @@ style.textContent = `
 
 .media-container {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: auto;
   position: relative;
   overflow: hidden;
-  border-radius: 0;
+  background-color: black;
+  aspect-ratio: 16 / 9;
 }
 
 .popup-media {
-  width: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: auto;
   height: 100%;
+  transform: translate(-50%, -50%);
   object-fit: cover;
-  display: block;
-  background-color: black; /* remove branco ao redor */
+  background-color: black;
 }
+
 
 .vimeo-wrapper iframe {
   position: absolute;
