@@ -1,8 +1,5 @@
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
-  .then(res => {
-    if (res.status === 204) return null;
-    return res.text();
-  })
+  .then(res => res.status === 204 ? null : res.text())
   .then(text => {
     if (!text) return;
     try {
@@ -20,18 +17,35 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-// Funções de verificação de mídia
 function isVideo(url) {
-  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+  return url && /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+}
+
+function isMilwaukeeMp4(url) {
+  return url && /widen\.net\/s\/.*\.mp4/i.test(url);
+}
+
+function convertToEmbedUrl(url) {
+  if (!url) return '';
+  const cleanUrl = url.split('?')[0];
+  return cleanUrl.replace("/s/", "/view/video/");
 }
 
 function isVimeo(url) {
-  return /vimeo\.com\/(\d+)/i.test(url);
+  return url && /vimeo\.com\/(\d+)/i.test(url);
 }
 
-function getVimeoThumbnail(url) {
-  const id = url.match(/vimeo\.com\/(\d+)/i)[1];
-  return `https://vumbnail.com/${id}_large.jpg`;
+function getVimeoEmbedUrl(url) {
+  const match = url.match(/vimeo\.com\/(\d+)/i);
+  return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&loop=1&muted=1&autopause=0&background=1` : null;
+}
+
+function getVideoType(url) {
+  if (!url) return 'video/mp4';
+  if (url.includes('.mp4')) return 'video/mp4';
+  if (url.includes('.webm')) return 'video/webm';
+  if (url.includes('.ogg')) return 'video/ogg';
+  return 'video/mp4';
 }
 
 function showPopup(campaign, index) {
@@ -45,71 +59,85 @@ function showPopup(campaign, index) {
 
   let media = '';
   const src = campaign.image;
-  const isVideoContent = isVideo(src) || isVimeo(src);
+  const isVideoContent = isVideo(src) || isVimeo(src) || isMilwaukeeMp4(src);
 
   if (src) {
-    if (isVimeo(src)) {
-      const thumbnail = getVimeoThumbnail(src);
+    if (isMilwaukeeMp4(src)) {
       media = `
-        <div class="video-container">
-          <video autoplay loop playsinline muted poster="${thumbnail}" class="popup-video">
-            <source src="https://player.vimeo.com/video/${src.match(/vimeo\.com\/(\d+)/i)[1]}/mp4" type="video/mp4">
+        <div class="media-container video-wrapper">
+          <video autoplay muted loop playsinline class="popup-video">
+            <source src="${src}" type="video/mp4">
           </video>
         </div>`;
+    } else if (isVimeo(src)) {
+      const embedUrl = getVimeoEmbedUrl(src);
+      if (embedUrl) {
+        media = `
+          <div class="media-container vimeo-wrapper">
+            <iframe src="${embedUrl}" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowfullscreen 
+                    class="popup-video"></iframe>
+          </div>`;
+      }
     } else if (isVideo(src)) {
       media = `
-        <div class="video-container">
-          <video autoplay loop playsinline muted class="popup-video">
-            <source src="${src}" type="${src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'}">
+        <div class="media-container video-wrapper">
+          <video autoplay muted loop playsinline class="popup-video">
+            <source src="${src}" type="${getVideoType(src)}">
           </video>
         </div>`;
     } else {
       media = `
-        <div class="image-container">
-          <img src="${src}" class="popup-image" alt="Promoção"/>
+        <div class="media-container image-wrapper">
+          <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
         </div>`;
     }
   }
 
   popup.innerHTML = `
     <div class="popup-content ${isVideoContent ? 'video-content' : ''}">
-      ${media}
+      <div class="popup-border">
+        ${media}
+      </div>
       <div class="popup-text">
         <h3>${campaign.title || ''}</h3>
-        <p>${campaign.message || ''}</p>
+        <div class="popup-body">${campaign.message || ''}</div>
       </div>
-      <div class="popup-close">&times;</div>
+      <span class="popup-close" title="Fechar">×</span>
     </div>
   `;
 
   document.body.appendChild(popup);
 
-  // Forçar autoplay se necessário
-  if (isVideoContent) {
-    const video = popup.querySelector('.popup-video');
-    if (video) {
-      video.play().catch(e => {
-        video.muted = true;
-        video.play();
-      });
+  popup.onclick = (e) => {
+    if (e.target.classList.contains('popup-close')) {
+      removePopup(popupId);
+    } else if (campaign.url) {
+      const url = fixUrl(campaign.url);
+      window.open(url, '_blank');
+      removePopup(popupId);
     }
-  }
-
-  // Fechar popup
-  popup.querySelector('.popup-close').addEventListener('click', () => {
-    popup.style.opacity = '0';
-    setTimeout(() => popup.remove(), 300);
-  });
+  };
 
   setTimeout(() => removePopup(popupId), 15000);
 }
 
 function removePopup(id) {
   const popup = document.getElementById(id);
-  if (popup) popup.remove();
+  if (popup) {
+    popup.style.opacity = '0';
+    setTimeout(() => popup.remove(), 500);
+  }
 }
 
-// Estilos CSS ultra clean - sem bordas brancas
+function fixUrl(url) {
+  if (!url) return '';
+  return /^https?:\/\//i.test(url) ? url : 'https://' + url;
+}
+
+// CSS isolado e clean
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
@@ -117,43 +145,70 @@ style.textContent = `
   bottom: 20px;
   left: 20px;
   z-index: 10000;
-  animation: fadeIn 0.3s ease-out;
+  transition: all 0.3s ease;
+  opacity: 1;
   max-width: 90vw;
+  animation: fadeInUp 0.3s ease forwards;
 }
 
 .popup-content {
-  width: 300px;
+  position: relative;
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   overflow: hidden;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+  width: 300px;
 }
 
-.video-content {
-  width: 320px;
+.popup-content.video-content {
+  width: 350px;
 }
 
-.video-container, .image-container {
+.popup-border {
+  padding: 0;
+  background: none;
+}
+
+.media-container {
   width: 100%;
   height: 200px;
-}
-
-.video-content .video-container {
-  height: 220px;
-}
-
-.popup-video, .popup-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  position: relative;
+  overflow: hidden;
   border-radius: 8px 8px 0 0;
 }
 
+.video-content .media-container {
+  height: 250px;
+}
+
+.popup-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  display: block;
+}
+
+.popup-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  display: block;
+}
+
+.vimeo-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
 .popup-text {
-  padding: 16px;
+  padding: 15px;
   text-align: center;
-  background: white;
 }
 
 .popup-text h3 {
@@ -163,37 +218,38 @@ style.textContent = `
   color: #333;
 }
 
-.popup-text p {
+.popup-body {
   margin: 0;
   font-size: 14px;
-  color: #666;
   line-height: 1.4;
+  color: #666;
 }
 
 .popup-close {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 26px;
-  height: 26px;
-  background: rgba(0,0,0,0.6);
-  color: white;
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.9);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
-  z-index: 2;
 }
 
 .popup-close:hover {
-  background: rgba(0,0,0,0.9);
+  background: #fff;
   transform: scale(1.1);
 }
 
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -204,16 +260,13 @@ style.textContent = `
     transform: translateX(-50%);
     bottom: 15px;
   }
-  
-  .popup-content, .video-content {
+  .popup-content, .popup-content.video-content {
     width: 90vw;
   }
-  
-  .video-container {
+  .media-container {
     height: 180px;
   }
-  
-  .video-content .video-container {
+  .video-content .media-container {
     height: 200px;
   }
 }
