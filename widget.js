@@ -196,16 +196,15 @@ style.textContent = `
   background-color: #000;
 }
 
-
-
-.vimeo-wrapper iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
+.media-container.video-wrapper {
+  aspect-ratio: 16 / 9;
   width: 100%;
-  height: 100%;
-  border: none;
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: black; /* evita fundo branco se vídeo não preencher */
 }
+
+
 
 .popup-text {
   padding: 15px;
