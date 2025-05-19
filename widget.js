@@ -74,8 +74,19 @@ function showPopup(campaign, index) {
   };
 
   document.body.appendChild(popup);
+
+  // Força o play do vídeo logo após anexar o popup:
+  const video = popup.querySelector('video');
+  if (video) {
+    video.play().catch(err => {
+      // Caso autoplay seja bloqueado, silencie o erro e deixa pausado
+      console.log('Autoplay bloqueado:', err);
+    });
+  }
+
   setTimeout(() => removePopup(popupId), 15000);
 }
+
 
 function removePopup(id) {
   const popup = document.getElementById(id);
