@@ -44,7 +44,7 @@ function getVimeoEmbedUrl(url) {
   if (!match) return null;
   
   const videoId = match[1];
-  return `https://player.vimeo.com/video/${videoId}?autoplay=1&loop=0&muted=1&autopause=0&background=0`;
+  return `https://player.vimeo.com/video/${videoId}?autoplay=1&loop=1&muted=1&autopause=0&background=1`;
 }
 
 function getVideoType(url) {
@@ -70,39 +70,44 @@ function showPopup(campaign, index) {
 
   if (src) {
     if (isMilwaukeeMp4(src)) {
-      const embed = convertToEmbedUrl(src);
       media = `
-        <div class="popup-media-wrapper video-container">
-          <iframe src="${embed}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen class="popup-iframe"></iframe>
+        <div class="media-container video-wrapper">
+          <video autoplay muted loop playsinline class="popup-media">
+            <source src="${src}" type="video/mp4">
+          </video>
         </div>`;
     } else if (isVimeo(src)) {
       const embedUrl = getVimeoEmbedUrl(src);
       if (embedUrl) {
         media = `
-          <div class="popup-media-wrapper vimeo-container">
+          <div class="media-container vimeo-wrapper">
             <iframe src="${embedUrl}" 
                     frameborder="0" 
                     allow="autoplay; fullscreen; picture-in-picture" 
                     allowfullscreen 
-                    class="popup-iframe vimeo-iframe"></iframe>
+                    class="popup-media"></iframe>
           </div>`;
       }
     } else if (isVideo(src)) {
       media = `
-        <div class="popup-media-wrapper video-container">
-          <video autoplay muted playsinline loop class="popup-video">
+        <div class="media-container video-wrapper">
+          <video autoplay muted loop playsinline class="popup-media">
             <source src="${src}" type="${getVideoType(src)}">
-            Seu navegador não suporta vídeo.
           </video>
         </div>`;
     } else {
-      media = `<img src="${src}" alt="Promoção" class="popup-img" onerror="this.style.display='none'"/>`;
+      media = `
+        <div class="media-container image-wrapper">
+          <img src="${src}" alt="Promoção" class="popup-media" onerror="this.style.display='none'"/>
+        </div>`;
     }
   }
 
   popup.innerHTML = `
     <div class="popup-content ${isVideoContent ? 'video-content' : ''}">
-      ${media}
+      <div class="popup-border">
+        ${media}
+      </div>
       <div class="popup-text">
         <h3>${campaign.title || ''}</h3>
         <div class="popup-body">${campaign.message || ''}</div>
@@ -141,120 +146,136 @@ function fixUrl(url) {
   return 'https://' + url;
 }
 
-// Estilos CSS atualizados - Popup de imagem mantido como antes, vídeo maior
+// Estilos CSS atualizados - Design quadrado elegante
 const style = document.createElement('style');
 style.textContent = `
-/* Estilo base do popup (como estava antes) */
 .promo-popup {
   position: fixed;
   bottom: 20px;
   left: 20px;
-  width: 320px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-  padding: 15px;
-  font-family: Arial, sans-serif;
   z-index: 10000;
-  transition: opacity 0.5s ease;
+  transition: all 0.3s ease;
   opacity: 1;
   max-width: 90vw;
 }
 
-/* Container do conteúdo */
 .popup-content {
   position: relative;
-}
-
-/* Estilo para imagens (como estava antes) */
-.popup-img {
-  width: 100%;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  max-height: 180px;
-  object-fit: cover;
-}
-
-/* Estilo para vídeos - NOVO (maior e mais destacado) */
-.popup-content.video-content {
-  width: 500px;
-  max-width: 90vw;
-}
-
-.popup-media-wrapper.video-container,
-.popup-media-wrapper.vimeo-container {
-  width: 100%;
-  aspect-ratio: 16/9;
-  background: #000;
-  border-radius: 8px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   overflow: hidden;
-  margin-bottom: 12px;
+  width: 300px;
 }
 
-.popup-video {
+.popup-content.video-content {
+  width: 350px;
+}
+
+.popup-border {
+  padding: 8px;
+  background: linear-gradient(145deg, #f5f5f5, #e0e0e0);
+  border-radius: 8px 8px 0 0;
+}
+
+.media-container {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+}
+
+.video-content .media-container {
+  height: 250px;
+}
+
+.popup-media {
   width: 100%;
   height: 100%;
+  object-fit: cover;
   display: block;
-  object-fit: contain;
 }
 
-.popup-iframe {
+.vimeo-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border: none;
 }
 
-/* Texto (mantido como antes) */
 .popup-text {
-  margin-top: 8px;
+  padding: 15px;
+  text-align: center;
 }
 
 .popup-text h3 {
-  margin: 0 0 4px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
+  color: #333;
 }
 
 .popup-body {
   margin: 0;
   font-size: 14px;
   line-height: 1.4;
+  color: #666;
 }
 
-/* Botão fechar (mantido como antes) */
 .popup-close {
   position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: 18px;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
   font-weight: bold;
-  color: #888;
   cursor: pointer;
-  transition: color 0.2s ease;
-  line-height: 1;
-  user-select: none;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
 }
 
 .popup-close:hover {
-  color: #000;
+  background: #fff;
+  transform: scale(1.1);
 }
 
-/* Responsividade */
-@media(max-width: 480px) {
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.promo-popup {
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+@media (max-width: 480px) {
   .promo-popup {
-    bottom: 10px;
-    left: 5%;
-    right: 5%;
-    width: auto;
-    padding: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 15px;
   }
   
-  .popup-content.video-content {
-    width: auto;
+  .popup-content, .popup-content.video-content {
+    width: 90vw;
   }
   
-  .popup-img {
-    max-height: 150px;
+  .media-container {
+    height: 180px;
+  }
+  
+  .video-content .media-container {
+    height: 200px;
   }
 }
 `;
