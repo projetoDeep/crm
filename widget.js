@@ -27,13 +27,13 @@ function showPopup(campaign, index) {
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-  const thumbVideo = `
-    <div class="media-container-round" id="video-thumb-container-${index}">
-      <video autoplay muted loop playsinline class="popup-media">
-        <source src="${campaign.image}" type="video/mp4">
-      </video>
-      <span class="popup-close" onclick="removePopup('${popupId}')">×</span>
-    </div>`;
+const thumbVideo = `
+  <div class="media-container-round" id="video-thumb-container-${index}">
+    <video autoplay muted loop playsinline class="popup-media">
+      <source src="${campaign.image}" type="video/mp4">
+    </video>
+  </div>
+  <span class="popup-close-left" onclick="removePopup('${popupId}')">×</span>`;
 
   popup.innerHTML = `
     <div class="popup-content video-content">${thumbVideo}</div>
@@ -82,6 +82,8 @@ style.textContent = `
   opacity: 1;
   animation: fadeInUp 0.3s ease forwards;
   max-width: 160px;
+  display: flex;
+  align-items: center;
 }
 
 .popup-content {
@@ -103,6 +105,30 @@ style.textContent = `
   box-shadow: 0 0 8px #00793f, 0 0 12px #00793f88;
   animation: neonPulse 2s infinite alternate;
 }
+
+.popup-close-left {
+  position: absolute;
+  left: -30px;
+  background: rgba(255,255,255,0.9);
+  color: #000;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  margin-right: 8px;
+}
+
+.popup-close-left:hover {
+  background: #fff;
+  transform: scale(1.1);
+}
+
 
 @keyframes neonPulse {
   from {
