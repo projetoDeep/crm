@@ -1,4 +1,4 @@
-<script>
+
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
@@ -176,4 +176,4 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
-</script>
+
