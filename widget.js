@@ -1,3 +1,4 @@
+<script>
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
@@ -27,8 +28,8 @@ function showPopup(campaign, index) {
   popup.className = 'promo-popup';
 
   const thumbVideo = `
-    <div class="media-container" id="video-thumb-container-${index}">
-      <video autoplay muted loop playsinline class="popup-media" id="thumb-video-${index}">
+    <div class="media-container-round" id="video-thumb-container-${index}">
+      <video autoplay muted loop playsinline class="popup-media">
         <source src="${campaign.image}" type="video/mp4">
       </video>
       <span class="popup-close" onclick="removePopup('${popupId}')">×</span>
@@ -87,15 +88,15 @@ style.textContent = `
   position: relative;
   background: transparent;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
 }
 
-.media-container {
+.media-container-round {
   position: relative;
-  width: 100%;
-  aspect-ratio: 9 / 16;
+  width: 80px;
+  height: 80px;
   background: black;
-  border-radius: 16px;
+  border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
   border: 4px solid #00793f;
@@ -112,12 +113,11 @@ style.textContent = `
   }
 }
 
-
 .popup-media {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
+  border-radius: 50%;
 }
 
 .video-overlay {
@@ -176,3 +176,4 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+</script>
