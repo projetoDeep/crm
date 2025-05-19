@@ -56,22 +56,23 @@ function showPopup(campaign, index) {
   const src = campaign.image;
 
   if (src) {
-    if (isVideo(src)) {
-      media = `
-        <video autoplay muted playsinline controls class="popup-video">
-          <source src="${src}" type="video/mp4">
-          Seu navegador não suporta vídeo.
-        </video>`;
-    } else if (isMilwaukeeMp4(src)) {
-      const embed = convertToEmbedUrl(src);
-      media = `
-        <div class="popup-iframe-wrapper">
-          <iframe src="${embed}" frameborder="0" allowfullscreen class="popup-iframe"></iframe>
-        </div>`;
-    } else {
-      media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
-    }
+  if (isMilwaukeeMp4(src)) {
+    const embed = convertToEmbedUrl(src);
+    media = `
+      <div class="popup-iframe-wrapper">
+        <iframe src="${embed}" frameborder="0" allowfullscreen class="popup-iframe"></iframe>
+      </div>`;
+  } else if (isVideo(src)) {
+    media = `
+      <video autoplay muted playsinline controls class="popup-video">
+        <source src="${src}" type="video/mp4">
+        Seu navegador não suporta vídeo.
+      </video>`;
+  } else {
+    media = `<img src="${src}" alt="Promoção" class="popup-img" />`;
   }
+}
+
 
   popup.innerHTML = `
     <div class="popup-content">
