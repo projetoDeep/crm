@@ -71,8 +71,8 @@ function showPopup(campaign, index) {
   if (src) {
     if (isMilwaukeeMp4(src)) {
       media = `
-        <div class="media-container video-wrapper">
-          <video autoplay muted loop playsinline class="popup-media">
+        <div class="media-container">
+          <video autoplay muted loop playsinline class="popup-video">
             <source src="${src}" type="video/mp4">
           </video>
         </div>`;
@@ -80,34 +80,32 @@ function showPopup(campaign, index) {
       const embedUrl = getVimeoEmbedUrl(src);
       if (embedUrl) {
         media = `
-          <div class="media-container vimeo-wrapper">
+          <div class="media-container">
             <iframe src="${embedUrl}" 
                     frameborder="0" 
                     allow="autoplay; fullscreen; picture-in-picture" 
                     allowfullscreen 
-                    class="popup-media"></iframe>
+                    class="popup-iframe"></iframe>
           </div>`;
       }
     } else if (isVideo(src)) {
       media = `
-        <div class="media-container video-wrapper">
-          <video autoplay muted loop playsinline class="popup-media">
+        <div class="media-container">
+          <video autoplay muted loop playsinline class="popup-video">
             <source src="${src}" type="${getVideoType(src)}">
           </video>
         </div>`;
     } else {
       media = `
-        <div class="media-container image-wrapper">
-          <img src="${src}" alt="Promoção" class="popup-media" onerror="this.style.display='none'"/>
+        <div class="media-container">
+          <img src="${src}" alt="Promoção" class="popup-image" onerror="this.style.display='none'"/>
         </div>`;
     }
   }
 
   popup.innerHTML = `
     <div class="popup-content ${isVideoContent ? 'video-content' : ''}">
-      <div class="popup-border">
-        ${media}
-      </div>
+      ${media}
       <div class="popup-text">
         <h3>${campaign.title || ''}</h3>
         <div class="popup-body">${campaign.message || ''}</div>
@@ -117,6 +115,16 @@ function showPopup(campaign, index) {
   `;
 
   document.body.appendChild(popup);
+
+  // Forçar autoplay em vídeos nativos se necessário
+  if (isVideo(src) && !isVimeo(src) && !isMilwaukeeMp4(src)) {
+    const video = popup.querySelector('.popup-video');
+    video.play().catch(e => {
+      // Fallback caso o autoplay seja bloqueado
+      video.muted = true;
+      video.play();
+    });
+  }
 
   // Configurar eventos de clique
   popup.onclick = (e) => {
@@ -146,7 +154,7 @@ function fixUrl(url) {
   return 'https://' + url;
 }
 
-// Estilos CSS atualizados - Design quadrado elegante
+// Estilos CSS atualizados - Design clean e funcional
 const style = document.createElement('style');
 style.textContent = `
 .promo-popup {
@@ -154,28 +162,21 @@ style.textContent = `
   bottom: 20px;
   left: 20px;
   z-index: 10000;
-  transition: all 0.3s ease;
-  opacity: 1;
+  animation: fadeIn 0.3s ease-out;
   max-width: 90vw;
 }
 
 .popup-content {
-  position: relative;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  overflow: hidden;
   width: 300px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .popup-content.video-content {
   width: 350px;
-}
-
-.popup-border {
-  padding: 8px;
-  background: linear-gradient(145deg, #f5f5f5, #e0e0e0);
-  border-radius: 8px 8px 0 0;
 }
 
 .media-container {
@@ -183,28 +184,30 @@ style.textContent = `
   height: 200px;
   position: relative;
   overflow: hidden;
-  border-radius: 4px;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+  background: #f8f8f8;
 }
 
 .video-content .media-container {
   height: 250px;
 }
 
-.popup-media {
+.popup-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.vimeo-wrapper iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
+.popup-iframe {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+.popup-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .popup-text {
@@ -222,8 +225,8 @@ style.textContent = `
 .popup-body {
   margin: 0;
   font-size: 14px;
-  line-height: 1.4;
   color: #666;
+  line-height: 1.4;
 }
 
 .popup-close {
@@ -232,31 +235,25 @@ style.textContent = `
   right: 10px;
   width: 24px;
   height: 24px;
-  background: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.5);
+  color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: bold;
   cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
 }
 
 .popup-close:hover {
-  background: #fff;
+  background: rgba(0,0,0,0.7);
   transform: scale(1.1);
 }
 
-@keyframes fadeInUp {
+@keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.promo-popup {
-  animation: fadeInUp 0.3s ease forwards;
 }
 
 @media (max-width: 480px) {
