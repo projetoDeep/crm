@@ -20,6 +20,11 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
+function unescapeHtml(escapedStr) {
+  const doc = new DOMParser().parseFromString(escapedStr, "text/html");
+  return doc.documentElement.textContent;
+}
+
 function showPopup(campaign, index) {
   const popupId = `promo-popup-${index}`;
   const oldPopup = document.getElementById(popupId);
@@ -34,7 +39,7 @@ console.log('campaign.message raw:', campaign.message);
       ${campaign.image ? `<img src="${campaign.image}" alt="Promoção" class="popup-img" />` : ''}
       <div class="popup-text">
         <h3>${campaign.title}</h3>
-        <div class="popup-body">${campaign.message}</div>
+        <div class="popup-body">${unescapeHtml(campaign.message)}</div>
       </div>
       <span class="popup-close" title="Fechar">x</span>
     </div>
@@ -98,7 +103,7 @@ const style = document.createElement('style');
 style.textContent = `
 #promo-popup-0, #promo-popup-1, #promo-popup-2, #promo-popup-3, #promo-popup-4, #promo-popup-5, #promo-popup-6, #promo-popup-7, #promo-popup-8, #promo-popup-9 {
   position: fixed;
-  top: 75vh; /* ← Mais abaixo da tela */
+  top: 70vh; /* ← Mais abaixo da tela */
   right: auto;
   left: 8%;
   width: 320px;
