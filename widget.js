@@ -105,7 +105,7 @@ style.textContent = `
   position: fixed;
   top: 70vh; /* ← Mais abaixo da tela */
   right: auto;
-  left: 8%;
+  left: 1%;
   width: 320px;
   background: #fff;
   border-radius: 12px;
