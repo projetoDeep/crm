@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.36
+// @version      1.1.38
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -182,6 +182,31 @@ function handleNoteDrop() {
         note.style.userSelect = "auto";
     }
 }
+
+//observa mudancas na DOM
+function observeContactChanges(contact) {
+    const targetNode = document.querySelector("header");
+
+    if (!targetNode) return;
+
+    const observer = new MutationObserver(() => {
+        renderLabel(contact);
+    });
+
+    observer.observe(targetNode, { childList: true, subtree: true });
+}
+
+
+
+    //serve pra monitrar as etiquetas vermelhas
+function startLabelWatcher(contact) {
+    renderLabel(contact); // Renderiza imediatamente
+
+    setInterval(() => {
+        renderLabel(contact);
+    }, 5000); // A cada 5 segundos, reaplica
+}
+
 
 function createLabelButton() {
     const header = document.querySelector("header");
