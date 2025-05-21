@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.38
+// @version      1.1.34
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -68,7 +68,7 @@ function addStickyNote(contact) {
         min-height: 80px;
     `;
     const savedText = localStorage.getItem(`wa-note-${contact}`);
-content.textContent = savedText || "Clique para editar...";
+content.innerHTML = savedText || "Clique para editar...";
 
 // Apagar o texto placeholder ao focar, se ainda não editado
 content.addEventListener("focus", () => {
@@ -85,8 +85,8 @@ content.addEventListener("focus", () => {
 
     // Salvar conteúdo automaticamente
     content.addEventListener('input', () => {
-        localStorage.setItem(`wa-note-${contact}`, content.textContent);
-    });
+    localStorage.setItem(`wa-note-${contact}`, content.innerHTML);
+});
 
     note.appendChild(dragHandle);
     note.appendChild(content);
