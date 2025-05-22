@@ -27,13 +27,13 @@ function showPopup(campaign, index) {
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-const thumbVideo = `
-  <div class="media-container-round" id="video-thumb-container-${index}">
-    <video autoplay muted loop playsinline class="popup-media">
-      <source src="${campaign.image}" type="video/mp4">
-    </video>
-  </div>
-  <span class="popup-close-left" onclick="removePopup('${popupId}')">×</span>`;
+  const thumbVideo = `
+    <div class="media-container-round" id="video-thumb-container-${index}">
+      <video autoplay muted loop playsinline class="popup-media">
+        <source src="${campaign.image}" type="video/mp4">
+      </video>
+    </div>
+    <span class="popup-close-left" onclick="removePopup('${popupId}')">×</span>`;
 
   popup.innerHTML = `
     <div class="popup-content video-content">${thumbVideo}</div>
@@ -41,26 +41,28 @@ const thumbVideo = `
 
   document.body.appendChild(popup);
 
-  // Ao clicar no vídeo, abrir modal com o vídeo completo
+  // Clicar no vídeo ativa o modo "status"
   const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
   thumbContainer.onclick = (e) => {
     if (e.target.classList.contains('popup-close')) return;
 
     const overlay = document.createElement('div');
-    overlay.className = 'video-overlay';
+    overlay.className = 'video-overlay blur-mode';
 
     overlay.innerHTML = `
-      <div class="video-full">
+      <div class="video-full scale-in">
         <video autoplay muted loop playsinline class="popup-video-full">
           <source src="${campaign.full || campaign.image}" type="video/mp4">
         </video>
-        <span class="popup-close-full" onclick="this.parentElement.parentElement.remove()">×</span>
+        <span class="popup-close-full" onclick="document.body.classList.remove('blurred'); this.closest('.video-overlay').remove()">×</span>
       </div>
     `;
+    
+    document.body.classList.add('blurred');
     document.body.appendChild(overlay);
   };
 
-  setTimeout(() => removePopup(popupId), 15000); // Tempo de exibição do popup
+  setTimeout(() => removePopup(popupId), 15000); // Tempo de exibição
 }
 
 function removePopup(id) {
@@ -74,6 +76,7 @@ function removePopup(id) {
 // CSS
 const style = document.createElement('style');
 style.textContent = `
+/* POPUP BOLINHA */
 .promo-popup {
   position: fixed;
   bottom: 20px;
@@ -122,14 +125,12 @@ style.textContent = `
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  margin-right: 8px;
 }
 
 .popup-close-left:hover {
   background: #fff;
   transform: scale(1.1);
 }
-
 
 @keyframes neonPulse {
   from {
@@ -147,24 +148,33 @@ style.textContent = `
   border-radius: 50%;
 }
 
+/* OVERLAY ESTILO STATUS */
 .video-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 10001;
   display: flex;
   justify-content: center;
   align-items: center;
+  backdrop-filter: blur(10px);
 }
 
 .video-full {
   position: relative;
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
   aspect-ratio: 9 / 16;
   border-radius: 20px;
   overflow: hidden;
   background: black;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+.video-full.scale-in {
+  transform: scale(1);
 }
 
 .popup-video-full {
@@ -174,16 +184,16 @@ style.textContent = `
   border-radius: inherit;
 }
 
-.popup-close, .popup-close-full {
+.popup-close-full {
   position: absolute;
   top: 8px;
   right: 8px;
   background: rgba(255,255,255,0.9);
   color: #000;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -192,7 +202,7 @@ style.textContent = `
   z-index: 10;
 }
 
-.popup-close:hover, .popup-close-full:hover {
+.popup-close-full:hover {
   background: #fff;
   transform: scale(1.1);
 }
@@ -201,6 +211,11 @@ style.textContent = `
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Desfoque no fundo */
+body.blurred > *:not(.video-overlay):not(script):not(style) {
+  filter: blur(5px) brightness(0.8);
+  pointer-events: none;
+}
 `;
 document.head.appendChild(style);
-
