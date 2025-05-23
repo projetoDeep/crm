@@ -192,31 +192,18 @@ function showPopup(campaign, index, allCampaigns) {
   <div class="blur-background"></div>
   <div class="video-status-container">
     <div class="progress-bars">${progressBars}</div>
-    <div class="video-full">
-      <video autoplay class="popup-video-full">
-        <source src="${campaign.full || campaign.image}" type="video/mp4">
-      </video>
+    <div class="video-full-container">
+      <div class="video-full">
+        <video autoplay class="popup-video-full">
+          <source src="${campaign.full || campaign.image}" type="video/mp4">
+        </video>
+      </div>
       <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
       ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
       ${interactionButtons}
-      <!-- Áreas clicáveis transparentes -->
-      <div class="click-area left-click-area"></div>
-      <div class="click-area right-click-area"></div>
     </div>
   </div>
 `;
-
-// Configuração das áreas clicáveis
-const leftArea = overlay.querySelector('.left-click-area');
-const rightArea = overlay.querySelector('.right-click-area');
-
-leftArea.addEventListener('click', () => {
-  if (index > 0) navigateToVideo(index - 1);
-});
-
-rightArea.addEventListener('click', () => {
-  if (index < allCampaigns.length - 1) navigateToVideo(index + 1);
-});
 
     document.body.appendChild(overlay);
 
@@ -829,6 +816,48 @@ style.textContent = `
 
 .view-product-button {
   z-index: 5;
+}
+.video-full-container {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 9/16;
+}
+
+.video-full {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: black;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.video-full::before,
+.video-full::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 30%;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.video-full::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.1), transparent);
+}
+
+.video-full::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(0,0,0,0.1), transparent);
+}
+
+.video-full:hover::before,
+.video-full:hover::after {
+  background: linear-gradient(90deg, rgba(0,0,0,0.2), transparent);
 }
 `;
 document.head.appendChild(style);
