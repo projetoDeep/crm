@@ -5,11 +5,9 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
     if (!text) return;
     try {
       const data = JSON.parse(text);
-      if (Array.isArray(data)) {
-        data.forEach((campaign, i) => {
-          setTimeout(() => showPopup(campaign, i, data), i * 10000);
-        });
-      } else {
+      if (Array.isArray(data) && data.length > 0) {
+        showPopup(data[0], 0, data);
+      } else if (data) {
         showPopup(data, 0, [data]);
       }
     } catch (e) {
@@ -18,8 +16,8 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-function showPopup(campaign, index, allCampaigns) {
-  const popupId = `promo-popup-${index}`;
+function showPopup(initialCampaign, startIndex, allCampaigns) {
+  const popupId = `promo-popup`;
   const oldPopup = document.getElementById(popupId);
   if (oldPopup) oldPopup.remove();
 
@@ -28,9 +26,9 @@ function showPopup(campaign, index, allCampaigns) {
   popup.className = 'promo-popup';
 
   const thumbVideo = `
-    <div class="media-container-round" id="video-thumb-container-${index}">
+    <div class="media-container-round" id="video-thumb-container">
       <video autoplay muted loop playsinline class="popup-media">
-        <source src="${campaign.image}" type="video/mp4">
+        <source src="${initialCampaign.image}" type="video/mp4">
       </video>
     </div>
     <span class="popup-close-left" onclick="removePopup('${popupId}')">×</span>`;
@@ -41,9 +39,11 @@ function showPopup(campaign, index, allCampaigns) {
 
   document.body.appendChild(popup);
 
-  const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
+  const thumbContainer = document.getElementById(`video-thumb-container`);
   thumbContainer.onclick = (e) => {
     if (e.target.classList.contains('popup-close')) return;
+
+    let index = startIndex;
 
     const overlay = document.createElement('div');
     overlay.className = 'video-overlay';
@@ -58,14 +58,14 @@ function showPopup(campaign, index, allCampaigns) {
         ${progressBars}
         <div class="video-full">
           <video autoplay loop playsinline class="popup-video-full">
-            <source src="${campaign.full || campaign.image}" type="video/mp4">
+            <source src="${initialCampaign.full || initialCampaign.image}" type="video/mp4">
           </video>
           <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
           <div class="video-nav-buttons">
             <button class="nav-button prev-button" ${index === 0 ? 'disabled' : ''}>‹</button>
             <button class="nav-button next-button" ${index === allCampaigns.length - 1 ? 'disabled' : ''}>›</button>
           </div>
-          ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
+          ${initialCampaign.url ? `<a href="${initialCampaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
         </div>
       </div>
     `;
