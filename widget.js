@@ -1,4 +1,6 @@
-fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
+<!-- Adicione este script ao final do seu HTML -->
+<script>
+fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https') 
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
     if (!text) return;
@@ -62,7 +64,9 @@ function showPopup(campaign, index, allCampaigns) {
             <button class="nav-button prev-button" ${index === 0 ? 'disabled' : ''}>‹</button>
             <button class="nav-button next-button" ${index === allCampaigns.length - 1 ? 'disabled' : ''}>›</button>
           </div>
-          ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
+          ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">
+            <span class="promo-banner">🔥 Promoção</span> Ver Produto
+          </a>` : ''}
         </div>
       </div>
     `;
@@ -84,7 +88,11 @@ function showPopup(campaign, index, allCampaigns) {
 
     const clearProgressAnimation = () => {
       const bars = overlay.querySelectorAll('.progress-fill');
-      bars.forEach(bar => bar.style.animation = 'none');
+      bars.forEach(bar => {
+        bar.style.animation = 'none';
+        bar.offsetHeight; // trigger reflow
+        bar.style.animation = '';
+      });
     };
 
     const navigateToVideo = (newIndex) => {
@@ -174,16 +182,97 @@ style.textContent = `
 @keyframes progressAnimation { from { width: 0%; } to { width: 100%; } }
 .video-full { position: relative; width: 100%; max-width: 360px; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; background: black; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 .popup-video-full { width: 100%; height: 100%; object-fit: cover; }
-.popup-close-full { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.9); color: #000; border-radius: 50%; width: 32px; height: 32px; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all 0.2s ease; }
-.popup-close-full:hover { background: #fff; transform: scale(1.1); }
-.video-nav-buttons { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
-.nav-button { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: all; transition: all 0.2s ease; backdrop-filter: blur(5px); }
-.nav-button:hover { background: rgba(255,255,255,0.3); transform: translateY(-50%) scale(1.1); }
-.nav-button:disabled { opacity: 0.3; pointer-events: none; }
-.prev-button { left: 10px; }
-.next-button { right: 10px; }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.view-product-button { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background-color: #28a745; color: white; padding: 14px 28px; border: none; border-radius: 40px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.4), 0 0 10px #28a745; text-decoration: none; user-select: none; transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease; z-index: 5; display: flex; align-items: center; justify-content: center; }
-.view-product-button:hover { background-color: #218838; box-shadow: 0 6px 12px rgba(33, 136, 56, 0.6), 0 0 14px #218838; transform: translateX(-50%) scale(1.05); text-decoration: none; }
+.popup-close-full { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.9); color: #000; border-radius: 50%;
+::contentReference[oaicite:13]{index=13}
+ 
+.popup-close-full {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,0.9);
+  color: #000;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+.popup-close-full:hover {
+  transform: scale(1.1);
+}
+.video-nav-buttons {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12px;
+  transform: translateY(-50%);
+}
+.nav-button {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  font-size: 28px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: #000;
+}
+.nav-button:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.view-product-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px auto;
+  background-color: #00793f;
+  color: white;
+  text-decoration: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: background 0.3s ease;
+}
+.view-product-button:hover {
+  background-color: #009a50;
+}
+.promo-banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(45deg, #ff005e, #ff9a00);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-bottom-right-radius: 12px;
+  animation: pulseBanner 2s infinite ease-in-out;
+}
+@keyframes pulseBanner {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+@keyframes fadeInUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
 `;
 document.head.appendChild(style);
