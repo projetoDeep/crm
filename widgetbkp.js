@@ -1,4 +1,4 @@
-fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
+fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https') 
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
     if (!text) return;
@@ -105,8 +105,19 @@ function showPopup(campaign, index, allCampaigns) {
 
         index = newIndex;
 
-        const viewBtn = overlay.querySelector('.view-product-button');
-        if (viewBtn) viewBtn.href = newCampaign.url || '#';
+        const videoFull = overlay.querySelector('.video-full');
+        const oldBtn = videoFull.querySelector('.view-product-button');
+        if (oldBtn) oldBtn.remove();
+
+        if (newCampaign.url) {
+          const newBtn = document.createElement('a');
+          newBtn.href = newCampaign.url;
+          newBtn.target = '_self';
+          newBtn.rel = 'noopener noreferrer';
+          newBtn.className = 'view-product-button';
+          newBtn.textContent = 'Ver Produto';
+          videoFull.appendChild(newBtn);
+        }
 
         if (timeoutProgress) clearTimeout(timeoutProgress);
         timeoutProgress = setTimeout(() => {
