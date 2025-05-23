@@ -177,4 +177,13 @@ style.textContent = `
 .popup-close-full { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.9); color: #000; border-radius: 50%; width: 32px; height: 32px; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all 0.2s ease; }
 .popup-close-full:hover { background: #fff; transform: scale(1.1); }
 .video-nav-buttons { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
-.nav-button { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: w
+.nav-button { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: all; transition: all 0.2s ease; backdrop-filter: blur(5px); }
+.nav-button:hover { background: rgba(255,255,255,0.3); transform: translateY(-50%) scale(1.1); }
+.nav-button:disabled { opacity: 0.3; pointer-events: none; }
+.prev-button { left: 10px; }
+.next-button { right: 10px; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.view-product-button { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background-color: #28a745; color: white; padding: 14px 28px; border: none; border-radius: 40px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.4), 0 0 10px #28a745; text-decoration: none; user-select: none; transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease; z-index: 5; display: flex; align-items: center; justify-content: center; }
+.view-product-button:hover { background-color: #218838; box-shadow: 0 6px 12px rgba(33, 136, 56, 0.6), 0 0 14px #218838; transform: translateX(-50%) scale(1.05); text-decoration: none; }
+`;
+document.head.appendChild(style);
