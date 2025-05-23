@@ -207,7 +207,7 @@ function showPopup(campaign, index, allCampaigns) {
 
     document.body.appendChild(overlay);
 
-    // Navegação pela barra de progresso
+    // Navegação pela barra de progresso 2.0 dos guri
 const progressBarsContainer = overlay.querySelector('.progress-bars-container');
 progressBarsContainer.addEventListener('click', (e) => {
   const bars = Array.from(overlay.querySelectorAll('.progress-bar'));
@@ -215,11 +215,10 @@ progressBarsContainer.addEventListener('click', (e) => {
   
   if (clickedBar) {
     const clickedIndex = bars.indexOf(clickedBar);
-    if (clickedIndex !== index) {
-      navigateToVideo(clickedIndex);
-    }
+    navigateToVideo(clickedIndex);
   }
 });
+
 
     const videoElement = overlay.querySelector('.popup-video-full');
     const prevButton = overlay.querySelector('.prev-button');
@@ -234,14 +233,29 @@ progressBarsContainer.addEventListener('click', (e) => {
       });
     }
 
-    if (muteButton) {
-      let isMuted = true;
-      muteButton.addEventListener('click', function() {
-        isMuted = !isMuted;
-        videoElement.muted = isMuted;
-        this.classList.toggle('active');
-      });
-    }
+   if (muteButton) {
+  let isMuted = videoElement.muted; // Pega o estado atual do vídeo
+  updateMuteButton();
+  
+  muteButton.addEventListener('click', function() {
+    isMuted = !isMuted;
+    videoElement.muted = isMuted;
+    updateMuteButton();
+  });
+  
+  function updateMuteButton() {
+    muteButton.classList.toggle('active', !isMuted);
+    muteButton.innerHTML = isMuted ? `
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+      </svg>
+    ` : `
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M16.5 12A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM19 12c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+      </svg>
+    `;
+  }
+}
 
     if (commentButton) {
       commentButton.addEventListener('click', showComments);
@@ -262,50 +276,54 @@ progressBarsContainer.addEventListener('click', (e) => {
     };
 
     const navigateToVideo = (newIndex) => {
-      if (newIndex >= 0 && newIndex < allCampaigns.length) {
-        const newCampaign = allCampaigns[newIndex];
-        videoElement.querySelector('source').src = newCampaign.full || newCampaign.image;
-        videoElement.load();
-        videoElement.play();
+  if (newIndex >= 0 && newIndex < allCampaigns.length) {
+    const newCampaign = allCampaigns[newIndex];
+    
+    // Atualiza o vídeo
+    videoElement.querySelector('source').src = newCampaign.full || newCampaign.image;
+    videoElement.load();
+    
+    // Mantém o estado de mudo ao trocar de vídeo
+    const wasMuted = videoElement.muted;
+    videoElement.muted = wasMuted;
+    videoElement.play();
 
-        clearProgressAnimation();
-        overlay.querySelectorAll('.progress-fill').forEach((bar, i) => {
-          bar.classList.toggle('active', i === newIndex);
-        });
-        startProgressAnimation(15);
-
-        prevButton.disabled = newIndex === 0;
-        nextButton.disabled = newIndex === allCampaigns.length - 1;
-
-        index = newIndex;
-
-        const videoFull = overlay.querySelector('.video-full');
-        const oldBtn = videoFull.querySelector('.view-product-button');
-        if (oldBtn) oldBtn.remove();
-
-        if (newCampaign.url) {
-          const newBtn = document.createElement('a');
-          newBtn.href = newCampaign.url;
-          newBtn.target = '_self';
-          newBtn.rel = 'noopener noreferrer';
-          newBtn.className = 'view-product-button';
-          newBtn.textContent = 'Ver Produto';
-          videoFull.appendChild(newBtn);
-        }
-
-        if (timeoutProgress) clearTimeout(timeoutProgress);
-        timeoutProgress = setTimeout(() => {
-          if (index < allCampaigns.length - 1) navigateToVideo(index + 1);
-          else overlay.remove();
-        }, 15000);
+    // Atualiza as barras de progresso
+    overlay.querySelectorAll('.progress-fill').forEach((fill, i) => {
+      fill.classList.remove('active', 'played');
+      if (i < newIndex) fill.classList.add('played'); // Vídeos já vistos
+      if (i === newIndex) {
+        fill.classList.add('active'); // Vídeo atual
+        fill.style.animation = `progressAnimation 15s linear forwards`;
       }
-    };
+    });
 
-    startProgressAnimation(15);
+    // Atualiza navegação
+    index = newIndex;
+    
+    // Atualiza botão do produto
+    const videoFull = overlay.querySelector('.video-full');
+    const oldBtn = videoFull.querySelector('.view-product-button');
+    if (oldBtn) oldBtn.remove();
+
+    if (newCampaign.url) {
+      const newBtn = document.createElement('a');
+      newBtn.href = newCampaign.url;
+      newBtn.target = '_self';
+      newBtn.rel = 'noopener noreferrer';
+      newBtn.className = 'view-product-button';
+      newBtn.textContent = 'Ver Produto';
+      videoFull.appendChild(newBtn);
+    }
+
+    // Reinicia o timer
+    if (timeoutProgress) clearTimeout(timeoutProgress);
     timeoutProgress = setTimeout(() => {
       if (index < allCampaigns.length - 1) navigateToVideo(index + 1);
       else overlay.remove();
     }, 15000);
+  }
+};
 
     prevButton.addEventListener('click', () => navigateToVideo(index - 1));
     nextButton.addEventListener('click', () => navigateToVideo(index + 1));
@@ -503,8 +521,8 @@ style.textContent = `
 }
 
 @keyframes progressAnimation { 
-  from { width: 0%; } 
-  to { width: 100%; } 
+  from { transform: scaleX(0); } 
+  to { transform: scaleX(1); }
 }
 
 .video-full { 
@@ -875,8 +893,8 @@ style.textContent = `
 }
 .progress-bars-container {
   display: flex;
-  height: 6px;  /* Aumentei a altura para ficar mais fácil de clicar */
-  gap: 4px;
+  height: 4px;
+  gap: 2px;
   width: 100%;
   cursor: pointer;
   margin-bottom: 8px;
@@ -885,17 +903,29 @@ style.textContent = `
 .progress-bar {
   flex: 1;
   height: 100%;
-  background: rgba(255,255,255,0.3);
-  border-radius: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
   overflow: hidden;
   position: relative;
 }
 
 .progress-fill {
   height: 100%;
-  width: 0;
+  width: 100%;
   background: rgba(255,255,255,0.9);
-  border-radius: 3px;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.progress-fill.active {
+  animation: none;
+  transform: scaleX(1);
+}
+
+.progress-fill.played {
+  background: rgba(255,255,255,0.6);
+  transform: scaleX(1);
 }
 
 .progress-bar:hover {
