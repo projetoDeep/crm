@@ -5,7 +5,7 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
     try {
       const data = JSON.parse(text);
       if (Array.isArray(data) && data.length > 0) {
-        showPopup(data[0], 0, data); // Mostra o primeiro popup apenas
+        showPopup(data[0], 0, data);
       } else if (data) {
         showPopup(data, 0, [data]);
       }
@@ -14,6 +14,97 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
     }
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
+
+// Variáveis para arrastar o widget
+let isDragging = false;
+let offsetX, offsetY;
+
+function makeDraggable(element) {
+  element.addEventListener('mousedown', startDrag);
+  element.addEventListener('touchstart', startDrag, { passive: false });
+  
+  function startDrag(e) {
+    isDragging = true;
+    const rect = element.getBoundingClientRect();
+    offsetX = (e.clientX || e.touches[0].clientX) - rect.left;
+    offsetY = (e.clientY || e.touches[0].clientY) - rect.top;
+    
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag, { passive: false });
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+    
+    e.preventDefault();
+  }
+  
+  function drag(e) {
+    if (!isDragging) return;
+    const x = (e.clientX || e.touches[0].clientX) - offsetX;
+    const y = (e.clientY || e.touches[0].clientY) - offsetY;
+    
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+    element.style.transform = 'none';
+    
+    e.preventDefault();
+  }
+  
+  function endDrag() {
+    isDragging = false;
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('touchmove', drag);
+    document.removeEventListener('mouseup', endDrag);
+    document.removeEventListener('touchend', endDrag);
+  }
+}
+
+function showComments() {
+  const overlay = document.querySelector('.video-overlay');
+  if (!overlay) return;
+  
+  const commentsSection = document.createElement('div');
+  commentsSection.className = 'comments-section';
+  
+  commentsSection.innerHTML = `
+    <div class="comments-header">
+      <div class="comments-title">Comentários</div>
+      <button class="comments-close">×</button>
+    </div>
+    <div class="comments-content">
+      <div class="no-comments">Nenhum Comentário</div>
+      <div class="comments-notice">Os comentários ficam visíveis depois que a loja responder</div>
+    </div>
+    <div class="comment-input-container">
+      <input type="text" class="comment-input" placeholder="Adicione um comentário...">
+      <button class="send-comment">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  `;
+  
+  overlay.appendChild(commentsSection);
+  
+  const viewProductBtn = overlay.querySelector('.view-product-button');
+  const interactionButtons = overlay.querySelector('.interaction-buttons');
+  if (viewProductBtn) viewProductBtn.style.display = 'none';
+  if (interactionButtons) interactionButtons.style.display = 'none';
+  
+  commentsSection.style.display = 'flex';
+  
+  commentsSection.querySelector('.comments-close').addEventListener('click', () => {
+    commentsSection.remove();
+    if (viewProductBtn) viewProductBtn.style.display = '';
+    if (interactionButtons) interactionButtons.style.display = '';
+  });
+  
+  commentsSection.querySelector('.send-comment').addEventListener('click', () => {
+    const input = commentsSection.querySelector('.comment-input');
+    if (input.value.trim()) {
+      alert('Comentário enviado com sucesso!');
+      input.value = '';
+    }
+  });
+}
 
 function showPopup(campaign, index, allCampaigns) {
   const popupId = `promo-popup`;
@@ -24,7 +115,6 @@ function showPopup(campaign, index, allCampaigns) {
   popup.id = popupId;
   popup.className = 'promo-popup';
 
-  // Texto animado que aparece antes de entrar no círculo
   const animatedText = `
     <div class="animated-text-container">
       <span class="animated-text">Clique e veja mais</span>
@@ -45,8 +135,8 @@ function showPopup(campaign, index, allCampaigns) {
   `;
 
   document.body.appendChild(popup);
+  makeDraggable(popup);
 
-  // Animação do texto que entra e depois vai para o círculo
   setTimeout(() => {
     const textElement = popup.querySelector('.animated-text-container');
     if (textElement) {
@@ -68,7 +158,6 @@ function showPopup(campaign, index, allCampaigns) {
       `<div class="progress-bar"><div class="progress-fill ${i === index ? 'active' : ''}"></div></div>`
     ).join('');
 
-    // Adicionando os novos botões de interação
     const interactionButtons = `
       <div class="interaction-buttons">
         <div class="interaction-button heart-button">
@@ -83,7 +172,7 @@ function showPopup(campaign, index, allCampaigns) {
         </div>
         <div class="interaction-button comment-button">
           <svg viewBox="0 0 24 24" width="24" height="24">
-            <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
+            <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
           </svg>
         </div>
         <div class="interaction-button share-button">
@@ -125,8 +214,8 @@ function showPopup(campaign, index, allCampaigns) {
     const nextButton = overlay.querySelector('.next-button');
     const heartButton = overlay.querySelector('.heart-button');
     const muteButton = overlay.querySelector('.mute-button');
+    const commentButton = overlay.querySelector('.comment-button');
 
-    // Adicionando funcionalidade aos botões de interação
     if (heartButton) {
       heartButton.addEventListener('click', function() {
         this.classList.toggle('active');
@@ -140,6 +229,10 @@ function showPopup(campaign, index, allCampaigns) {
         videoElement.muted = isMuted;
         this.classList.toggle('active');
       });
+    }
+
+    if (commentButton) {
+      commentButton.addEventListener('click', showComments);
     }
 
     let timeoutProgress;
@@ -167,7 +260,7 @@ function showPopup(campaign, index, allCampaigns) {
         overlay.querySelectorAll('.progress-fill').forEach((bar, i) => {
           bar.classList.toggle('active', i === newIndex);
         });
-        startProgressAnimation(15); // tempo de video definido aqui em segundos (15)
+        startProgressAnimation(15);
 
         prevButton.disabled = newIndex === 0;
         nextButton.disabled = newIndex === allCampaigns.length - 1;
@@ -239,7 +332,7 @@ const style = document.createElement('style');
 style.textContent = `
 .promo-popup { 
   position: fixed; 
-  left: 30px; 
+  left: 20px; 
   top: 50%; 
   transform: translateY(-50%); 
   z-index: 10000; 
@@ -249,13 +342,12 @@ style.textContent = `
   align-items: center; 
   transition: opacity 0.3s ease; 
   flex-direction: column;
+  cursor: grab;
+  touch-action: none;
 }
 
-.popup-content { 
-  position: relative; 
-  background: transparent; 
-  border-radius: 16px; 
-  overflow: visible; 
+.promo-popup:active {
+  cursor: grabbing;
 }
 
 .animated-text-container {
@@ -576,6 +668,103 @@ style.textContent = `
   50% { transform: scale(1); }
   75% { transform: scale(1.2); }
   100% { transform: scale(1); }
+}
+
+.comments-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  z-index: 10002;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 20px;
+}
+
+.comments-header {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  margin-bottom: 30px;
+}
+
+.comments-title {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.comments-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.comments-content {
+  text-align: center;
+  color: white;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  margin-bottom: 30px;
+}
+
+.no-comments {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.comments-notice {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.comment-input-container {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  padding: 0 16px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+
+.send-comment {
+  background: #FF3E80;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.send-comment svg {
+  fill: white;
+  width: 20px;
+  height: 20px;
 }
 `;
 document.head.appendChild(style);
