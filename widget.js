@@ -188,24 +188,46 @@ function showPopup(campaign, index, allCampaigns) {
       </div>
     `;
 
-    overlay.innerHTML = `
-      <div class="blur-background"></div>
-      <div class="video-status-container">
-        <div class="progress-bars">${progressBars}</div>
-        <div class="video-full">
-          <video autoplay class="popup-video-full">
-            <source src="${campaign.full || campaign.image}" type="video/mp4">
-          </video>
-          <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
-          <div class="video-nav-buttons">
-            <button class="nav-button prev-button" ${index === 0 ? 'disabled' : ''}>‹</button>
-            <button class="nav-button next-button" ${index === allCampaigns.length - 1 ? 'disabled' : ''}>›</button>
-          </div>
-          ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
-          ${interactionButtons}
-        </div>
-      </div>
-    `;
+   overlay.innerHTML = `
+  <div class="blur-background"></div>
+  <div class="video-status-container">
+    <div class="progress-bars">${progressBars}</div>
+    <div class="video-full">
+      <video autoplay class="popup-video-full">
+        <source src="${campaign.full || campaign.image}" type="video/mp4">
+      </video>
+      <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
+      ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
+      ${interactionButtons}
+    </div>
+  </div>
+`;
+
+// Adiciona o listener para cliques nas laterais (coloque IMEDIATAMENTE após o overlay.innerHTML)
+overlay.addEventListener('click', (e) => {
+  // Não fazer nada se clicar em elementos interativos
+  if (e.target.closest('.interaction-buttons, .view-product-button, .popup-close-full, .comments-section')) {
+    return;
+  }
+  
+  const videoRect = overlay.querySelector('.video-full').getBoundingClientRect();
+  const clickX = e.clientX;
+  
+  // Determinar áreas (30% de cada lado)
+  const leftArea = videoRect.left + (videoRect.width * 0.1); // 10% para melhor usabilidade
+  const rightArea = videoRect.right - (videoRect.width * 0.1);
+  const middleStart = videoRect.left + (videoRect.width * 0.3);
+  const middleEnd = videoRect.right - (videoRect.width * 0.3);
+  
+  // Clique na área esquerda
+  if (clickX < middleStart && clickX > leftArea) {
+    if (index > 0) navigateToVideo(index - 1);
+  }
+  // Clique na área direita
+  else if (clickX > middleEnd && clickX < rightArea) {
+    if (index < allCampaigns.length - 1) navigateToVideo(index + 1);
+  }
+});
 
     document.body.appendChild(overlay);
 
@@ -576,12 +598,35 @@ style.textContent = `
   pointer-events: none; 
 }
 
-.prev-button { 
-  left: 10px; 
+.video-full {
+  position: relative;
+  cursor: pointer;
 }
 
-.next-button { 
-  right: 10px; 
+.video-full::before,
+.video-full::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 30%;
+  z-index: 5;
+  transition: background-color 0.2s;
+}
+
+.video-full::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.2), transparent);
+}
+
+.video-full::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(0,0,0,0.2), transparent);
+}
+
+.video-full:hover::before,
+.video-full:hover::after {
+  background-color: rgba(255,255,255,0.05);
 }
 
 @keyframes fadeInUp { 
