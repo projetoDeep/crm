@@ -199,34 +199,23 @@ function showPopup(campaign, index, allCampaigns) {
       <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
       ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
       ${interactionButtons}
+      <!-- Áreas clicáveis transparentes -->
+      <div class="click-area left-click-area"></div>
+      <div class="click-area right-click-area"></div>
     </div>
   </div>
 `;
 
-// Adiciona o listener para cliques nas laterais (coloque IMEDIATAMENTE após o overlay.innerHTML)
-overlay.addEventListener('click', (e) => {
-  // Não fazer nada se clicar em elementos interativos
-  if (e.target.closest('.interaction-buttons, .view-product-button, .popup-close-full, .comments-section')) {
-    return;
-  }
-  
-  const videoRect = overlay.querySelector('.video-full').getBoundingClientRect();
-  const clickX = e.clientX;
-  
-  // Determinar áreas (30% de cada lado)
-  const leftArea = videoRect.left + (videoRect.width * 0.1); // 10% para melhor usabilidade
-  const rightArea = videoRect.right - (videoRect.width * 0.1);
-  const middleStart = videoRect.left + (videoRect.width * 0.3);
-  const middleEnd = videoRect.right - (videoRect.width * 0.3);
-  
-  // Clique na área esquerda
-  if (clickX < middleStart && clickX > leftArea) {
-    if (index > 0) navigateToVideo(index - 1);
-  }
-  // Clique na área direita
-  else if (clickX > middleEnd && clickX < rightArea) {
-    if (index < allCampaigns.length - 1) navigateToVideo(index + 1);
-  }
+// Configuração das áreas clicáveis
+const leftArea = overlay.querySelector('.left-click-area');
+const rightArea = overlay.querySelector('.right-click-area');
+
+leftArea.addEventListener('click', () => {
+  if (index > 0) navigateToVideo(index - 1);
+});
+
+rightArea.addEventListener('click', () => {
+  if (index < allCampaigns.length - 1) navigateToVideo(index + 1);
 });
 
     document.body.appendChild(overlay);
@@ -810,6 +799,36 @@ style.textContent = `
   fill: white;
   width: 20px;
   height: 20px;
+}
+.click-area {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 30%;
+  z-index: 4; /* Abaixo dos botões de interação */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.left-click-area {
+  left: 0;
+}
+
+.right-click-area {
+  right: 0;
+}
+
+.click-area:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Garante que os botões de interação fiquem acima */
+.interaction-buttons {
+  z-index: 5;
+}
+
+.view-product-button {
+  z-index: 5;
 }
 `;
 document.head.appendChild(style);
