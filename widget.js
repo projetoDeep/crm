@@ -65,7 +65,7 @@ function showPopup(campaign, index, allCampaigns) {
             <button class="nav-button prev-button" ${index === 0 ? 'disabled' : ''}>‹</button>
             <button class="nav-button next-button" ${index === allCampaigns.length - 1 ? 'disabled' : ''}>›</button>
           </div>
-          ${campaign.url ? `<a href="${campaign.url}" target="_blank" class="view-product-button">Ver Produto</a>` : ''}
+          ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
         </div>
       </div>
     `;
@@ -262,24 +262,20 @@ style.textContent = `
   padding: 0 16px;
 }
 
-.progress-bars {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-}
-
 .progress-bar {
   flex: 1;
   height: 3px;
   background: rgba(255,255,255,0.3);
   border-radius: 2px;
   overflow: hidden;
+  margin: 0 2px;
 }
 
 .progress-fill {
   height: 100%;
   width: 0;
   background: rgba(255,255,255,0.9);
+  border-radius: 2px;
 }
 
 .progress-fill.active {
@@ -384,6 +380,7 @@ style.textContent = `
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Botão Ver Produto - estilo moderno */
 .view-product-button {
   position: absolute;
   bottom: 16px;
@@ -391,20 +388,33 @@ style.textContent = `
   transform: translateX(-50%);
   background-color: #28a745;
   color: white;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border: none;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: bold;
+  border-radius: 40px;
+  font-weight: 600;
   font-size: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow:
+    0 4px 6px rgba(40, 167, 69, 0.4),
+    0 0 10px #28a745;
+  text-decoration: none;
+  user-select: none;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
   z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .view-product-button:hover {
   background-color: #218838;
+  box-shadow:
+    0 6px 12px rgba(33, 136, 56, 0.6),
+    0 0 14px #218838;
   transform: translateX(-50%) scale(1.05);
+  text-decoration: none;
 }
 `;
 document.head.appendChild(style);
