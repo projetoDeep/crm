@@ -1,3 +1,4 @@
+
 fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
@@ -40,20 +41,17 @@ function showPopup(campaign, index, allCampaigns) {
 
   document.body.appendChild(popup);
 
-  // Ao clicar no vídeo, abrir modal com o vídeo completo
   const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
   thumbContainer.onclick = (e) => {
     if (e.target.classList.contains('popup-close')) return;
-    
-    // Criar overlay com efeito de blur no fundo
+
     const overlay = document.createElement('div');
     overlay.className = 'video-overlay';
-    
-    // Criar progress bar para cada vídeo
-    const progressBars = allCampaigns.map((_, i) => 
+
+    const progressBars = allCampaigns.map((_, i) =>
       `<div class="progress-bar"><div class="progress-fill ${i === index ? 'active' : ''}"></div></div>`
     ).join('');
-    
+
     overlay.innerHTML = `
       <div class="blur-background"></div>
       <div class="video-status-container">
@@ -67,87 +65,71 @@ function showPopup(campaign, index, allCampaigns) {
             <button class="nav-button prev-button" ${index === 0 ? 'disabled' : ''}>‹</button>
             <button class="nav-button next-button" ${index === allCampaigns.length - 1 ? 'disabled' : ''}>›</button>
           </div>
+          ${campaign.url ? `<a href="${campaign.url}" target="_blank" class="view-product-button">Ver Produto</a>` : ''}
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(overlay);
-    
-    // Adicionar eventos de navegação
+
     const videoElement = overlay.querySelector('.popup-video-full');
     const prevButton = overlay.querySelector('.prev-button');
     const nextButton = overlay.querySelector('.next-button');
-    
-    // Função para navegar entre vídeos
+
     const navigateToVideo = (newIndex) => {
       if (newIndex >= 0 && newIndex < allCampaigns.length) {
         const newCampaign = allCampaigns[newIndex];
         videoElement.querySelector('source').src = newCampaign.full || newCampaign.image;
         videoElement.load();
         videoElement.play();
-        
-        // Atualizar progress bars
+
         overlay.querySelectorAll('.progress-fill').forEach((bar, i) => {
           bar.classList.toggle('active', i === newIndex);
         });
-        
-        // Atualizar botões de navegação
+
         prevButton.disabled = newIndex === 0;
         nextButton.disabled = newIndex === allCampaigns.length - 1;
-        
-        // Atualizar index atual
+
         index = newIndex;
+
+        const viewBtn = overlay.querySelector('.view-product-button');
+        if (viewBtn) viewBtn.href = newCampaign.url || '#';
       }
     };
-    
+
     prevButton.addEventListener('click', () => navigateToVideo(index - 1));
     nextButton.addEventListener('click', () => navigateToVideo(index + 1));
-    
-    // Adicionar navegação por swipe (opcional para mobile)
+
     let touchStartX = 0;
     let touchEndX = 0;
-    
+
     overlay.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
     }, false);
-    
+
     overlay.addEventListener('touchend', (e) => {
       touchEndX = e.changedTouches[0].screenX;
       handleSwipe();
     }, false);
-    
+
     const handleSwipe = () => {
-      if (touchEndX < touchStartX - 50) {
-        // Swipe left - next video
-        navigateToVideo(index + 1);
-      } else if (touchEndX > touchStartX + 50) {
-        // Swipe right - previous video
-        navigateToVideo(index - 1);
-      }
+      if (touchEndX < touchStartX - 50) navigateToVideo(index + 1);
+      else if (touchEndX > touchStartX + 50) navigateToVideo(index - 1);
     };
-    
-    // Iniciar animação da progress bar
-    if (overlay.querySelector('.progress-fill.active')) {
-      const activeBar = overlay.querySelector('.progress-fill.active');
-      activeBar.style.animation = 'progressAnimation 15s linear forwards';
-    }
-    
-    // Pausar progress bar quando o mouse está sobre o vídeo
+
+    const activeBar = overlay.querySelector('.progress-fill.active');
+    if (activeBar) activeBar.style.animation = 'progressAnimation 15s linear forwards';
+
     videoElement.addEventListener('mouseenter', () => {
-      overlay.querySelectorAll('.progress-fill').forEach(bar => {
-        bar.style.animationPlayState = 'paused';
-      });
+      overlay.querySelectorAll('.progress-fill').forEach(bar => bar.style.animationPlayState = 'paused');
     });
-    
+
     videoElement.addEventListener('mouseleave', () => {
       overlay.querySelectorAll('.progress-fill').forEach(bar => {
-        if (bar.classList.contains('active')) {
-          bar.style.animationPlayState = 'running';
-        }
+        if (bar.classList.contains('active')) bar.style.animationPlayState = 'running';
       });
     });
-    
-    // Fechar overlay quando o vídeo acabar (se não estiver em loop)
+
     videoElement.addEventListener('ended', () => {
       if (!videoElement.loop) {
         setTimeout(() => {
@@ -161,7 +143,7 @@ function showPopup(campaign, index, allCampaigns) {
     });
   };
 
-  setTimeout(() => removePopup(popupId), 15000); // Tempo de exibição do popup
+  setTimeout(() => removePopup(popupId), 15000);
 }
 
 function removePopup(id) {
@@ -401,5 +383,29 @@ style.textContent = `
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.view-product-button {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #28a745;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  z-index: 5;
+}
+
+.view-product-button:hover {
+  background-color: #218838;
+  transform: translateX(-50%) scale(1.05);
+}
 `;
 document.head.appendChild(style);
+
