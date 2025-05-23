@@ -188,16 +188,16 @@ function showPopup(campaign, index, allCampaigns) {
       </div>
     `;
 
-   overlay.innerHTML = `
+  overlay.innerHTML = `
   <div class="blur-background"></div>
   <div class="video-status-container">
-    <div class="progress-bars">${progressBars}</div>
-    <div class="video-full-container">
-      <div class="video-full">
-        <video autoplay class="popup-video-full">
-          <source src="${campaign.full || campaign.image}" type="video/mp4">
-        </video>
-      </div>
+    <div class="progress-bars-container">
+      ${progressBars}
+    </div>
+    <div class="video-full">
+      <video autoplay class="popup-video-full">
+        <source src="${campaign.full || campaign.image}" type="video/mp4">
+      </video>
       <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
       ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
       ${interactionButtons}
@@ -206,6 +206,20 @@ function showPopup(campaign, index, allCampaigns) {
 `;
 
     document.body.appendChild(overlay);
+
+    // Navegação pela barra de progresso
+const progressBarsContainer = overlay.querySelector('.progress-bars-container');
+progressBarsContainer.addEventListener('click', (e) => {
+  const bars = Array.from(overlay.querySelectorAll('.progress-bar'));
+  const clickedBar = e.target.closest('.progress-bar');
+  
+  if (clickedBar) {
+    const clickedIndex = bars.indexOf(clickedBar);
+    if (clickedIndex !== index) {
+      navigateToVideo(clickedIndex);
+    }
+  }
+});
 
     const videoElement = overlay.querySelector('.popup-video-full');
     const prevButton = overlay.querySelector('.prev-button');
@@ -858,6 +872,35 @@ style.textContent = `
 .video-full:hover::before,
 .video-full:hover::after {
   background: linear-gradient(90deg, rgba(0,0,0,0.2), transparent);
+}
+.progress-bars-container {
+  display: flex;
+  height: 6px;  /* Aumentei a altura para ficar mais fácil de clicar */
+  gap: 4px;
+  width: 100%;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 100%;
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0;
+  background: rgba(255,255,255,0.9);
+  border-radius: 3px;
+}
+
+.progress-bar:hover {
+  transform: scaleY(1.5);
+  transition: transform 0.2s ease;
 }
 `;
 document.head.appendChild(style);
