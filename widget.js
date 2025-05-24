@@ -233,15 +233,16 @@ progressBarsContainer.addEventListener('click', (e) => {
       });
     }
 
-   if (muteButton) {
-  let isMuted = videoElement.muted; // Pega o estado atual do vídeo
-  updateMuteButton();
+if (muteButton) {
+  // Começa com vídeo mudo (se nao da ruim no navegador)
+  videoElement.muted = true;
+  muteButton.classList.add('active');
   
   muteButton.addEventListener('click', function() {
-    isMuted = !isMuted;
-    videoElement.muted = isMuted;
-    updateMuteButton();
+    videoElement.muted = !videoElement.muted;
+    this.classList.toggle('active', videoElement.muted);
   });
+}
   
   function updateMuteButton() {
     muteButton.classList.toggle('active', !isMuted);
@@ -277,24 +278,28 @@ progressBarsContainer.addEventListener('click', (e) => {
 
     const navigateToVideo = (newIndex) => {
   if (newIndex >= 0 && newIndex < allCampaigns.length) {
-    const newCampaign = allCampaigns[newIndex];
+    // Pausa e reseta o video atual antes de mudar
+    videoElement.pause();
+    videoElement.currentTime = 0;
     
     // Atualiza o vídeo
+    const newCampaign = allCampaigns[newIndex];
     videoElement.querySelector('source').src = newCampaign.full || newCampaign.image;
     videoElement.load();
-    
-    // Mantém o estado de mudo ao trocar de vídeo
-    const wasMuted = videoElement.muted;
-    videoElement.muted = wasMuted;
     videoElement.play();
 
-    // Atualiza as barras de progresso
+    // Reseta completamente as barras
     overlay.querySelectorAll('.progress-fill').forEach((fill, i) => {
+      fill.style.animation = 'none';
       fill.classList.remove('active', 'played');
-      if (i < newIndex) fill.classList.add('played'); // Vídeos já vistos
-      if (i === newIndex) {
-        fill.classList.add('active'); // Vídeo atual
-        fill.style.animation = `progressAnimation 15s linear forwards`;
+      void fill.offsetWidth; // Trigger reflow
+      
+      if (i < newIndex) {
+        fill.classList.add('played');
+        fill.style.transform = 'scaleX(1)';
+      } else if (i === newIndex) {
+        fill.classList.add('active');
+        fill.style.animation = 'progressAnimation 15s linear forwards';
       }
     });
 
@@ -611,32 +616,6 @@ style.textContent = `
   cursor: pointer;
 }
 
-.video-full::before,
-.video-full::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 30%;
-  z-index: 5;
-  transition: background-color 0.2s;
-}
-
-.video-full::before {
-  left: 0;
-  background: linear-gradient(90deg, rgba(0,0,0,0.2), transparent);
-}
-
-.video-full::after {
-  right: 0;
-  background: linear-gradient(270deg, rgba(0,0,0,0.2), transparent);
-}
-
-.video-full:hover::before,
-.video-full:hover::after {
-  background-color: rgba(255,255,255,0.05);
-}
-
 @keyframes fadeInUp { 
   from { opacity: 0; transform: translateY(10px); } 
   to { opacity: 1; transform: translateY(0); } 
@@ -929,8 +908,7 @@ style.textContent = `
 }
 
 .progress-bar:hover {
-  transform: scaleY(1.5);
-  transition: transform 0.2s ease;
+  transform: none !important;
 }
 `;
 document.head.appendChild(style);
