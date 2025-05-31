@@ -1,4 +1,4 @@
-fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
+fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https') 
   .then(res => res.status === 204 ? null : res.text())
   .then(text => {
     if (!text) return;
@@ -15,39 +15,40 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
-// Função para arrastar o widget
-function makeDraggable(element) {
-  let isDragging = false, offsetX = 0, offsetY = 0;
+// Variáveis para arrastar o widget
+let isDragging = false;
+let offsetX, offsetY;
 
+function makeDraggable(element) {
   element.addEventListener('mousedown', startDrag);
   element.addEventListener('touchstart', startDrag, { passive: false });
-
+  
   function startDrag(e) {
     isDragging = true;
     const rect = element.getBoundingClientRect();
     offsetX = (e.clientX || e.touches[0].clientX) - rect.left;
     offsetY = (e.clientY || e.touches[0].clientY) - rect.top;
-
+    
     document.addEventListener('mousemove', drag);
     document.addEventListener('touchmove', drag, { passive: false });
     document.addEventListener('mouseup', endDrag);
     document.addEventListener('touchend', endDrag);
-
+    
     e.preventDefault();
   }
-
+  
   function drag(e) {
     if (!isDragging) return;
     const x = (e.clientX || e.touches[0].clientX) - offsetX;
     const y = (e.clientY || e.touches[0].clientY) - offsetY;
-
+    
     element.style.left = `${x}px`;
     element.style.top = `${y}px`;
     element.style.transform = 'none';
-
+    
     e.preventDefault();
   }
-
+  
   function endDrag() {
     isDragging = false;
     document.removeEventListener('mousemove', drag);
@@ -57,7 +58,54 @@ function makeDraggable(element) {
   }
 }
 
-// Função para mostrar o popup
+function showComments() {
+  const overlay = document.querySelector('.video-overlay');
+  if (!overlay) return;
+  
+  const commentsSection = document.createElement('div');
+  commentsSection.className = 'comments-section';
+  
+  commentsSection.innerHTML = `
+    <div class="comments-header">
+      <div class="comments-title">Comentários</div>
+      <button class="comments-close">×</button>
+    </div>
+    <div class="comments-content">
+      <div class="no-comments">Nenhum Comentário</div>
+      <div class="comments-notice">Os comentários ficam visíveis depois que a loja responder</div>
+    </div>
+    <div class="comment-input-container">
+      <input type="text" class="comment-input" placeholder="Adicione um comentário...">
+      <button class="send-comment">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  `;
+  
+  overlay.appendChild(commentsSection);
+  
+  const viewProductBtn = overlay.querySelector('.view-product-button');
+  const interactionButtons = overlay.querySelector('.interaction-buttons');
+  if (viewProductBtn) viewProductBtn.style.display = 'none';
+  if (interactionButtons) interactionButtons.style.display = 'none';
+  
+  commentsSection.style.display = 'flex';
+  
+  commentsSection.querySelector('.comments-close').addEventListener('click', () => {
+    commentsSection.remove();
+    if (viewProductBtn) viewProductBtn.style.display = '';
+    if (interactionButtons) interactionButtons.style.display = '';
+  });
+  
+  commentsSection.querySelector('.send-comment').addEventListener('click', () => {
+    const input = commentsSection.querySelector('.comment-input');
+    if (input.value.trim()) {
+      alert('Comentário enviado com sucesso!');
+      input.value = '';
+    }
+  });
+}
+
 function showPopup(campaign, index, allCampaigns) {
   const popupId = `promo-popup`;
   const oldPopup = document.getElementById(popupId);
@@ -99,43 +147,10 @@ function showPopup(campaign, index, allCampaigns) {
     }
   }, 3000);
 
-  // --- Suporte a mobile: tap abre popup, drag não abre ---
   const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
-
-  let startX, startY, dragging = false;
-
-  thumbContainer.addEventListener('touchstart', function(e){
-    const touch = e.touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-    dragging = false;
-  }, { passive: false });
-
-  thumbContainer.addEventListener('touchmove', function(e){
-    const touch = e.touches[0];
-    if (Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
-      dragging = true;
-    }
-  }, { passive: false });
-
-  thumbContainer.addEventListener('touchend', function(e){
-    if (!dragging) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.target.classList.contains('popup-close')) return;
-      openPopupHandler(e);
-    }
-  }, { passive: false });
-
-  thumbContainer.addEventListener('click', function(e){
-    e.preventDefault();
-    e.stopPropagation();
+  thumbContainer.onclick = (e) => {
     if (e.target.classList.contains('popup-close')) return;
-    openPopupHandler(e);
-  });
 
-  function openPopupHandler(e) {
-    // Cria o overlay do vídeo
     const overlay = document.createElement('div');
     overlay.className = 'video-overlay';
 
@@ -173,22 +188,22 @@ function showPopup(campaign, index, allCampaigns) {
       </div>
     `;
 
-    overlay.innerHTML = `
-    <div class="blur-background"></div>
-    <div class="video-status-container">
-      <div class="progress-bars-container">
-        ${progressBars}
-      </div>
-      <div class="video-full">
-        <video autoplay class="popup-video-full">
-          <source src="${campaign.full || campaign.image}" type="video/mp4">
-        </video>
-        <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
-        ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
-        ${interactionButtons}
-      </div>
+  overlay.innerHTML = `
+  <div class="blur-background"></div>
+  <div class="video-status-container">
+    <div class="progress-bars-container">
+      ${progressBars}
     </div>
-    `;
+    <div class="video-full">
+      <video autoplay class="popup-video-full">
+        <source src="${campaign.full || campaign.image}" type="video/mp4">
+      </video>
+      <span class="popup-close-full" onclick="this.closest('.video-overlay').remove()">×</span>
+      ${campaign.url ? `<a href="${campaign.url}" target="_self" class="view-product-button" rel="noopener noreferrer">Ver Produto</a>` : ''}
+      ${interactionButtons}
+    </div>
+  </div>
+`;
 
     document.body.appendChild(overlay);
 
@@ -333,7 +348,7 @@ if (muteButton) {
     };
   };
 
-  setTimeout(() => removePopup(popupId), 15000000); //pra ele nao sumir
+  setTimeout(() => removePopup(popupId), 15000);
 }
 
 function removePopup(id) {
@@ -343,8 +358,7 @@ function removePopup(id) {
     setTimeout(() => popup.remove(), 500);
   }
 }
-thumbContainer.addEventListener('click', openPopupHandler);
-thumbContainer.addEventListener('touchend', openPopupHandler, { passive: false });
+
 // CSS
 const style = document.createElement('style');
 style.textContent = `
