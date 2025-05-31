@@ -934,38 +934,44 @@ style.textContent = `
 document.head.appendChild(style);
 // ====== CORREÇÃO TOUCH PARA POPUP NÃO FUGIR NO MOBILE ======
 (function() {
-  // Procura todos os thumbs usados no widget (caso tenha mais de um popup/campanha)
-  var thumbs = document.querySelectorAll('[id^="video-thumb-container-"]');
+  // Aguarda o DOM estar pronto
+  document.addEventListener('DOMContentLoaded', function() {
+    // Função para aplicar a correção em todos os thumbs
+    function applyPopupTouchFix() {
+      var thumbs = document.querySelectorAll('[id^="video-thumb-container-"]');
+      thumbs.forEach(function(thumb) {
+        // Evita duplicar listeners
+        if (thumb._popupTouchFixed) return;
+        thumb._popupTouchFixed = true;
 
-  thumbs.forEach(function(thumb) {
-    let startX, startY, dragging = false;
+        let startX, startY, dragging = false;
 
-    // Remove handlers duplicados se reinserir popup
-    thumb.ontouchstart = null;
-    thumb.ontouchmove = null;
-    thumb.ontouchend = null;
+        thumb.addEventListener('touchstart', function(e){
+          const touch = e.touches[0];
+          startX = touch.clientX;
+          startY = touch.clientY;
+          dragging = false;
+        }, { passive: true }); // Não bloqueia scroll do site
 
-    thumb.addEventListener('touchstart', function(e){
-      const touch = e.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
-      dragging = false;
-    }, { passive: false });
+        thumb.addEventListener('touchmove', function(e){
+          const touch = e.touches[0];
+          if (Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
+            dragging = true;
+          }
+        }, { passive: true });
 
-    thumb.addEventListener('touchmove', function(e){
-      const touch = e.touches[0];
-      if (Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
-        dragging = true;
-      }
-    }, { passive: false });
-
-    thumb.addEventListener('touchend', function(e){
-      if (!dragging) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Dispara click manualmente para garantir que o popup abre
-        thumb.click();
-      }
-    }, { passive: false });
+        thumb.addEventListener('touchend', function(e){
+          // Só dispara click manual se for TAP (sem drag)
+          if (!dragging) {
+            // Não chama preventDefault nem stopPropagation!
+            // Só dispara o click normal do thumb
+            thumb.click();
+          }
+        }, { passive: true });
+      });
+    }
+    // Roda ao carregar e depois de popups dinâmicos aparecerem
+    applyPopupTouchFix();
+    // Se o widget recriar thumbs dinamicamente, chame applyPopupTouchFix() de novo após criar!
   });
 })();
