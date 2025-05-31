@@ -148,8 +148,11 @@ function showPopup(campaign, index, allCampaigns) {
   }, 3000);
 
   const thumbContainer = document.getElementById(`video-thumb-container-${index}`);
-  thumbContainer.onclick = (e) => {
-    if (e.target.classList.contains('popup-close')) return;
+
+function openPopupHandler(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.target.classList.contains('popup-close')) return;
 
     const overlay = document.createElement('div');
     overlay.className = 'video-overlay';
@@ -348,7 +351,7 @@ if (muteButton) {
     };
   };
 
-  setTimeout(() => removePopup(popupId), 15000);
+  setTimeout(() => removePopup(popupId), 15000000); //pra ele nao sumir
 }
 
 function removePopup(id) {
@@ -358,7 +361,8 @@ function removePopup(id) {
     setTimeout(() => popup.remove(), 500);
   }
 }
-
+thumbContainer.addEventListener('click', openPopupHandler);
+thumbContainer.addEventListener('touchend', openPopupHandler, { passive: false });
 // CSS
 const style = document.createElement('style');
 style.textContent = `
