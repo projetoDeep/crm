@@ -932,15 +932,18 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
-<script>
-// Corrige eventos de touch/click para popups com id 'promo-popup' e thumb com id 'video-thumb-container-0'
+// ====== CORREÇÃO TOUCH PARA POPUP NÃO FUGIR NO MOBILE ======
 (function() {
-  // Aguarda a existência do popup e thumb
-  function fixTouchForPopup() {
-    var thumb = document.getElementById('video-thumb-container-0');
-    if (!thumb) { setTimeout(fixTouchForPopup, 300); return; }
+  // Procura todos os thumbs usados no widget (caso tenha mais de um popup/campanha)
+  var thumbs = document.querySelectorAll('[id^="video-thumb-container-"]');
 
+  thumbs.forEach(function(thumb) {
     let startX, startY, dragging = false;
+
+    // Remove handlers duplicados se reinserir popup
+    thumb.ontouchstart = null;
+    thumb.ontouchmove = null;
+    thumb.ontouchend = null;
 
     thumb.addEventListener('touchstart', function(e){
       const touch = e.touches[0];
@@ -964,7 +967,5 @@ document.head.appendChild(style);
         thumb.click();
       }
     }, { passive: false });
-  }
-  fixTouchForPopup();
-})();  
-</script>
+  });
+})();
