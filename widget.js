@@ -932,3 +932,39 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+<script>
+// Corrige eventos de touch/click para popups com id 'promo-popup' e thumb com id 'video-thumb-container-0'
+(function() {
+  // Aguarda a existência do popup e thumb
+  function fixTouchForPopup() {
+    var thumb = document.getElementById('video-thumb-container-0');
+    if (!thumb) { setTimeout(fixTouchForPopup, 300); return; }
+
+    let startX, startY, dragging = false;
+
+    thumb.addEventListener('touchstart', function(e){
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      dragging = false;
+    }, { passive: false });
+
+    thumb.addEventListener('touchmove', function(e){
+      const touch = e.touches[0];
+      if (Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
+        dragging = true;
+      }
+    }, { passive: false });
+
+    thumb.addEventListener('touchend', function(e){
+      if (!dragging) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Dispara click manualmente para garantir que o popup abre
+        thumb.click();
+      }
+    }, { passive: false });
+  }
+  fixTouchForPopup();
+})();  
+</script>
