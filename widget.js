@@ -15,6 +15,40 @@ fetch('https://lxbooogilngujgqrtspc.supabase.co/functions/v1/popup-https')
   })
   .catch(err => console.error("Erro ao buscar campanha:", err));
 
+//variaveis mobile sem arrasto ao toque
+let startX, startY, endX, endY;
+let dragging = false;
+
+// Ao começar o toque, armazene a posição
+thumbContainer.addEventListener('touchstart', function(e){
+  const touch = e.touches[0];
+  startX = touch.clientX;
+  startY = touch.clientY;
+  dragging = false; // reset
+}, { passive: false });
+
+// Ao mover, se passar de X pixels, vira drag
+thumbContainer.addEventListener('touchmove', function(e){
+  const touch = e.touches[0];
+  if (Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
+    dragging = true;
+  }
+}, { passive: false });
+
+// Ao soltar, só abre se não foi drag
+thumbContainer.addEventListener('touchend', function(e){
+  if (!dragging) {
+    e.preventDefault();
+    // Aqui chama seu código de abrir o popup do vídeo!
+    openPopupHandler(e);
+  }
+}, { passive: false });
+
+// Para desktop/click normal
+thumbContainer.addEventListener('click', function(e){
+  openPopupHandler(e);
+});
+
 // Variáveis para arrastar o widget
 let isDragging = false;
 let offsetX, offsetY;
