@@ -7,7 +7,7 @@ function addStickyNote(contact) {
   const note = document.createElement("div");
   note.id = "wa-helper-note";
   note.contentEditable = true;
-  note.innerText = localStorage.getItem(`wa-note-${contact}`) || "Sua anotação aqui...";
+  note.innerHTML = localStorage.getItem(`wa-note-${contact}`) || "Sua anotação aqui...";
   note.style.cssText = `
     position: fixed;
     bottom: 10px;
@@ -22,7 +22,7 @@ function addStickyNote(contact) {
   document.body.appendChild(note);
 
   note.addEventListener("input", () => {
-    localStorage.setItem(`wa-note-${contact}`, note.innerText);
+    localStorage.setItem(`wa-note-${contact}`, note.innerHTML);
   });
 }
 
