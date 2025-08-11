@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.36
+// @version      1.1.35
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -68,9 +68,7 @@ function addStickyNote(contact) {
         min-height: 80px;
     `;
     const savedText = localStorage.getItem(`wa-note-${contact}`);
-    // CORREÇÃO APLICADA AQUI: Carrega o conteúdo salvo (mesmo que seja uma string vazia) ou o placeholder.
-    content.innerHTML = savedText !== null ? savedText : "Clique para editar...";
-
+    content.innerHTML = savedText || "Clique para editar...";
 
     // Apagar o texto placeholder ao focar, se ainda não editado
     content.addEventListener("focus", () => {
@@ -142,6 +140,7 @@ function addStickyNote(contact) {
         alert(`⏰ Alerta de follow-up ativado para ${minutes} minutos.`);
     };
 
+    // Isso aqui NÃO da pra remover, nao sei o pq mas n da
     note.appendChild(followBtn);
 }
 
@@ -740,6 +739,7 @@ document.addEventListener("click", (e) => {
         "Limpar notas e etiquetas (contato atual)",
         () => {
             const contact = currentContact;
+            console.log("Contato atual:", contact);
             if (!contact) {
                 alert("Nenhum contato selecionado.");
                 return;
@@ -750,9 +750,6 @@ document.addEventListener("click", (e) => {
                 localStorage.removeItem(`label-${contact}`);
                 localStorage.removeItem(`followup-${contact}`);
                 alert(`Dados do contato "${contact}" limpos.`);
-                // Recarrega a nota para refletir a limpeza
-                addStickyNote(contact);
-                renderLabel(contact);
             }
         }
     );
@@ -856,5 +853,8 @@ document.addEventListener("click", (e) => {
     });
 
 })();
+
+
+
 
 document.head.appendChild(style);
