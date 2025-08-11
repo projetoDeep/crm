@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CRM WhatsApp
 // @namespace    https://github.com/ProjetoDeep/crm
-// @version      1.1.34
+// @version      1.1.35
 // @description  Sistema completo de etiquetas e anotações móveis
 // @author       Você
 // @match        https://web.whatsapp.com/*
@@ -68,14 +68,14 @@ function addStickyNote(contact) {
         min-height: 80px;
     `;
     const savedText = localStorage.getItem(`wa-note-${contact}`);
-content.innerHTML = savedText || "Clique para editar...";
+    content.innerHTML = savedText || "Clique para editar...";
 
-// Apagar o texto placeholder ao focar, se ainda não editado
-content.addEventListener("focus", () => {
-    if (content.textContent === "Clique para editar...") {
-        content.textContent = "";
-    }
-});
+    // Apagar o texto placeholder ao focar, se ainda não editado
+    content.addEventListener("focus", () => {
+        if (content.innerHTML === "Clique para editar...") {
+            content.innerHTML = "";
+        }
+    });
 
     // Eventos de arrasto
     dragHandle.addEventListener('mousedown', startNoteDrag);
@@ -85,17 +85,17 @@ content.addEventListener("focus", () => {
 
     // Salvar conteúdo automaticamente
     content.addEventListener('input', () => {
-    localStorage.setItem(`wa-note-${contact}`, content.innerHTML);
-});
+        localStorage.setItem(`wa-note-${contact}`, content.innerHTML);
+    });
 
     note.appendChild(dragHandle);
     note.appendChild(content);
     document.body.appendChild(note);
 
     // Botão de follow-up
-const followBtn = document.createElement("button");
-followBtn.textContent = "⏰ Alarme ⏰";
-followBtn.style.cssText = `
+    const followBtn = document.createElement("button");
+    followBtn.textContent = "⏰ Alarme ⏰";
+    followBtn.style.cssText = `
     background: #ffd966;
     border: none;
     padding: 5px;
@@ -104,40 +104,44 @@ followBtn.style.cssText = `
     border-top: 1px solid #ffdf7e;
 `;
 
-followBtn.onclick = () => {
-    const delayInput = prompt(`Defina o tempo do alarme para o contato "${contact}": (ex: 10m, 2h, 1d — utilize apenas números inteiros)`);
+    followBtn.onclick = () => {
+        const delayInput = prompt(`Defina o tempo do alarme para o contato "${contact}": (ex: 10m, 2h, 1d — utilize apenas números inteiros)`);
 
-    function parseTimeToMinutes(str) {
-        if (!str) return null;
-        const regex = /^(\d+)([dhm])?$/i;
-        const match = str.trim().toLowerCase().match(regex);
-        if (!match) return null;
+        function parseTimeToMinutes(str) {
+            if (!str) return null;
+            const regex = /^(\d+)([dhm])?$/i;
+            const match = str.trim().toLowerCase().match(regex);
+            if (!match) return null;
 
-        const value = parseInt(match[1], 10);
-        const unit = match[2] || 'm'; // padrão minutos
+            const value = parseInt(match[1], 10);
+            const unit = match[2] || 'm'; // padrão minutos
 
-        switch (unit) {
-            case 'd': return value * 60 * 24;
-            case 'h': return value * 60;
-            case 'm': return value;
-            default: return null;
+            switch (unit) {
+                case 'd':
+                    return value * 60 * 24;
+                case 'h':
+                    return value * 60;
+                case 'm':
+                    return value;
+                default:
+                    return null;
+            }
         }
-    }
 
-    const minutes = parseTimeToMinutes(delayInput);
+        const minutes = parseTimeToMinutes(delayInput);
 
-    if (minutes === null || minutes <= 0) {
-        alert("Formato inválido! Use: 10m, 2h, 1d (números inteiros maiores que zero).");
-        return;
-    }
+        if (minutes === null || minutes <= 0) {
+            alert("Formato inválido! Use: 10m, 2h, 1d (números inteiros maiores que zero).");
+            return;
+        }
 
-    const triggerTime = Date.now() + minutes * 60 * 1000;
-    localStorage.setItem(`followup-${contact}`, triggerTime);
-    alert(`⏰ Alerta de follow-up ativado para ${minutes} minutos.`);
-};
+        const triggerTime = Date.now() + minutes * 60 * 1000;
+        localStorage.setItem(`followup-${contact}`, triggerTime);
+        alert(`⏰ Alerta de follow-up ativado para ${minutes} minutos.`);
+    };
 
-// Isso aqui NÃO da pra remover, nao sei o pq mas n da
-note.appendChild(followBtn);
+    // Isso aqui NÃO da pra remover, nao sei o pq mas n da
+    note.appendChild(followBtn);
 }
 
 
@@ -193,12 +197,15 @@ function observeContactChanges(contact) {
         renderLabel(contact);
     });
 
-    observer.observe(targetNode, { childList: true, subtree: true });
+    observer.observe(targetNode, {
+        childList: true,
+        subtree: true
+    });
 }
 
 
 
-    //serve pra monitrar as etiquetas vermelhas
+//serve pra monitrar as etiquetas vermelhas
 function startLabelWatcher(contact) {
     renderLabel(contact); // Renderiza imediatamente
 
@@ -515,7 +522,10 @@ window.addEventListener("load", () => {
         const app = document.querySelector("#app");
         if (app) {
             const observer = new MutationObserver(onChatChange);
-            observer.observe(app, { childList: true, subtree: true });
+            observer.observe(app, {
+                childList: true,
+                subtree: true
+            });
             onChatChange();
         }
     }, 5000);
@@ -637,11 +647,11 @@ document.addEventListener("click", (e) => {
 
 // --- Engrenagem flutuante e menu arrastável // ---
 (function() {
-  if (document.querySelector("#crm-gear-container")) return;
+    if (document.querySelector("#crm-gear-container")) return;
 
-  const container = document.createElement("div");
-  container.id = "crm-gear-container";
-  container.style.cssText = `
+    const container = document.createElement("div");
+    container.id = "crm-gear-container";
+    container.style.cssText = `
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -650,10 +660,10 @@ document.addEventListener("click", (e) => {
     cursor: grab;
   `;
 
-  const gear = document.createElement("div");
-  gear.id = "crm-gear-icon";
-  gear.title = "Abrir menu CRM";
-  gear.style.cssText = `
+    const gear = document.createElement("div");
+    gear.id = "crm-gear-icon";
+    gear.title = "Abrir menu CRM";
+    gear.style.cssText = `
     width: 44px;
     height: 44px;
     background: #25D366;
@@ -666,13 +676,13 @@ document.addEventListener("click", (e) => {
     color: white;
     user-select: none;
   `;
-  gear.textContent = "⚙️";
+    gear.textContent = "⚙️";
 
-  container.appendChild(gear);
+    container.appendChild(gear);
 
-  const menu = document.createElement("div");
-  menu.id = "crm-extra-functions-menu";
-  menu.style.cssText = `
+    const menu = document.createElement("div");
+    menu.id = "crm-extra-functions-menu";
+    menu.style.cssText = `
     display: none;
     position: absolute;
     bottom: 60px;
@@ -691,20 +701,20 @@ document.addEventListener("click", (e) => {
     border: 1px solid rgba(37, 211, 102, 0.5);
   `;
 
-  const title = document.createElement("div");
-  title.textContent = "Funções Extras";
-  title.style.cssText = `
+    const title = document.createElement("div");
+    title.textContent = "Funções Extras";
+    title.style.cssText = `
     font-weight: 700;
     margin-bottom: 10px;
     text-align: center;
     color: inherit;
   `;
-  menu.appendChild(title);
+    menu.appendChild(title);
 
-  function createButton(text, onClick) {
-    const btn = document.createElement("button");
-    btn.textContent = text;
-    btn.style.cssText = `
+    function createButton(text, onClick) {
+        const btn = document.createElement("button");
+        btn.textContent = text;
+        btn.style.cssText = `
       width: 100%;
       padding: 8px;
       margin-bottom: 8px;
@@ -718,56 +728,56 @@ document.addEventListener("click", (e) => {
       transition: background 0.3s ease;
       user-select: none;
     `;
-    btn.onmouseenter = () => btn.style.background = "rgba(37, 211, 102, 1)";
-    btn.onmouseleave = () => btn.style.background = "rgba(37, 211, 102, 0.85)";
-    btn.onclick = onClick;
-    return btn;
-  }
-
-  // Botão limpar contato
-const btnClearContact = createButton(
-  "Limpar notas e etiquetas (contato atual)",
-  () => {
-    const contact = getCurrentContact();
-    console.log("Contato atual:", contact);
-    if (!contact) {
-      alert("Nenhum contato selecionado.");
-      return;
+        btn.onmouseenter = () => btn.style.background = "rgba(37, 211, 102, 1)";
+        btn.onmouseleave = () => btn.style.background = "rgba(37, 211, 102, 0.85)";
+        btn.onclick = onClick;
+        return btn;
     }
-    if (confirm(`Confirma limpar notas, etiquetas e alarmes do contato "${contact}"?`)) {
-      localStorage.removeItem(`wa-note-${contact}`);
-      localStorage.removeItem(`wa-note-pos-${contact}`);
-      localStorage.removeItem(`label-${contact}`);
-      localStorage.removeItem(`followup-${contact}`);
-      alert(`Dados do contato "${contact}" limpos.`);
-    }
-  }
-);
 
-  menu.appendChild(btnClearContact);
-
-  // Botão limpar alarmes vencidos
-  const btnClearExpiredAlarms = createButton(
-    "Limpar todos alarmes vencidos",
-    () => {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
-      const now = Date.now();
-      let count = 0;
-      keys.forEach(key => {
-        const trigger = parseInt(localStorage.getItem(key));
-        if (trigger && now >= trigger) {
-          localStorage.removeItem(key);
-          count++;
+    // Botão limpar contato
+    const btnClearContact = createButton(
+        "Limpar notas e etiquetas (contato atual)",
+        () => {
+            const contact = currentContact;
+            console.log("Contato atual:", contact);
+            if (!contact) {
+                alert("Nenhum contato selecionado.");
+                return;
+            }
+            if (confirm(`Confirma limpar notas, etiquetas e alarmes do contato "${contact}"?`)) {
+                localStorage.removeItem(`wa-note-${contact}`);
+                localStorage.removeItem(`wa-note-pos-${contact}`);
+                localStorage.removeItem(`label-${contact}`);
+                localStorage.removeItem(`followup-${contact}`);
+                alert(`Dados do contato "${contact}" limpos.`);
+            }
         }
-      });
-      alert(`Foram limpos ${count} alarmes vencidos.`);
-    }
-  );
-  menu.appendChild(btnClearExpiredAlarms);
+    );
 
-  // Toggle abrir chat automaticamente
-  const toggleAutoOpenChat = document.createElement("label");
-  toggleAutoOpenChat.style.cssText = `
+    menu.appendChild(btnClearContact);
+
+    // Botão limpar alarmes vencidos
+    const btnClearExpiredAlarms = createButton(
+        "Limpar todos alarmes vencidos",
+        () => {
+            const keys = Object.keys(localStorage).filter(k => k.startsWith("followup-"));
+            const now = Date.now();
+            let count = 0;
+            keys.forEach(key => {
+                const trigger = parseInt(localStorage.getItem(key));
+                if (trigger && now >= trigger) {
+                    localStorage.removeItem(key);
+                    count++;
+                }
+            });
+            alert(`Foram limpos ${count} alarmes vencidos.`);
+        }
+    );
+    menu.appendChild(btnClearExpiredAlarms);
+
+    // Toggle abrir chat automaticamente
+    const toggleAutoOpenChat = document.createElement("label");
+    toggleAutoOpenChat.style.cssText = `
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -781,66 +791,66 @@ const btnClearContact = createButton(
     font-size: 13px;
     margin-top: 8px;
   `;
-  toggleAutoOpenChat.innerHTML = `Abrir chat automaticamente ao disparar alarme <input type="checkbox" style="transform: scale(1.3); margin-left: 8px;">`;
+    toggleAutoOpenChat.innerHTML = `Abrir chat automaticamente ao disparar alarme <input type="checkbox" style="transform: scale(1.3); margin-left: 8px;">`;
 
-  const checkbox = toggleAutoOpenChat.querySelector("input");
-  checkbox.checked = localStorage.getItem("crm-auto-open-chat") === "true";
+    const checkbox = toggleAutoOpenChat.querySelector("input");
+    checkbox.checked = localStorage.getItem("crm-auto-open-chat") === "true";
 
-  checkbox.addEventListener("change", () => {
-    localStorage.setItem("crm-auto-open-chat", checkbox.checked.toString());
-  });
+    checkbox.addEventListener("change", () => {
+        localStorage.setItem("crm-auto-open-chat", checkbox.checked.toString());
+    });
 
-  menu.appendChild(toggleAutoOpenChat);
+    menu.appendChild(toggleAutoOpenChat);
 
-  container.appendChild(menu);
-  document.body.appendChild(container);
+    container.appendChild(menu);
+    document.body.appendChild(container);
 
-  gear.addEventListener("click", e => {
-    e.stopPropagation();
-    menu.style.display = (menu.style.display === "none") ? "block" : "none";
-  });
+    gear.addEventListener("click", e => {
+        e.stopPropagation();
+        menu.style.display = (menu.style.display === "none") ? "block" : "none";
+    });
 
-  document.addEventListener("click", () => {
-    if (menu.style.display === "block") {
-      menu.style.display = "none";
-    }
-  });
+    document.addEventListener("click", () => {
+        if (menu.style.display === "block") {
+            menu.style.display = "none";
+        }
+    });
 
-  let isDragging = false;
-  let dragOffsetX = 0;
-  let dragOffsetY = 0;
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
 
-  container.addEventListener("mousedown", e => {
-    isDragging = true;
-    dragOffsetX = e.clientX - container.getBoundingClientRect().left;
-    dragOffsetY = e.clientY - container.getBoundingClientRect().top;
-    container.style.cursor = "grabbing";
-    e.preventDefault();
-  });
+    container.addEventListener("mousedown", e => {
+        isDragging = true;
+        dragOffsetX = e.clientX - container.getBoundingClientRect().left;
+        dragOffsetY = e.clientY - container.getBoundingClientRect().top;
+        container.style.cursor = "grabbing";
+        e.preventDefault();
+    });
 
-  window.addEventListener("mouseup", () => {
-    if (isDragging) {
-      isDragging = false;
-      container.style.cursor = "grab";
-    }
-  });
+    window.addEventListener("mouseup", () => {
+        if (isDragging) {
+            isDragging = false;
+            container.style.cursor = "grab";
+        }
+    });
 
-  window.addEventListener("mousemove", e => {
-    if (!isDragging) return;
-    let x = e.clientX - dragOffsetX;
-    let y = e.clientY - dragOffsetY;
-    const maxX = window.innerWidth - container.offsetWidth;
-    const maxY = window.innerHeight - container.offsetHeight;
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (x > maxX) x = maxX;
-    if (y > maxY) y = maxY;
-    container.style.left = x + "px";
-    container.style.top = y + "px";
-    container.style.bottom = "auto";
-    container.style.right = "auto";
-    container.style.position = "fixed";
-  });
+    window.addEventListener("mousemove", e => {
+        if (!isDragging) return;
+        let x = e.clientX - dragOffsetX;
+        let y = e.clientY - dragOffsetY;
+        const maxX = window.innerWidth - container.offsetWidth;
+        const maxY = window.innerHeight - container.offsetHeight;
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x > maxX) x = maxX;
+        if (y > maxY) y = maxY;
+        container.style.left = x + "px";
+        container.style.top = y + "px";
+        container.style.bottom = "auto";
+        container.style.right = "auto";
+        container.style.position = "fixed";
+    });
 
 })();
 
